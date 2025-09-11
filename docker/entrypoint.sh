@@ -35,8 +35,10 @@ PYCODE
 # Aplicar migrações automaticamente em dev
 python manage.py migrate --noinput || true
 
-# Coletar estáticos (se existir)
-python manage.py collectstatic --noinput || true
+# Coletar estáticos somente quando não estiver em DEBUG
+if [ "${DJANGO_DEBUG}" != "True" ] && [ "${DJANGO_DEBUG}" != "true" ]; then
+  python manage.py collectstatic --noinput || true
+fi
 
 exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
 
