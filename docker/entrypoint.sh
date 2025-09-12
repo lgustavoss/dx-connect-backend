@@ -33,6 +33,8 @@ wait(os.getenv("REDIS_HOST", "redis"), int(os.getenv("REDIS_PORT", "6379")), "Re
 PYCODE
 
 # Aplicar migrações automaticamente em dev
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.development}
+
 python manage.py migrate --noinput || true
 
 # Coletar estáticos somente quando não estiver em DEBUG

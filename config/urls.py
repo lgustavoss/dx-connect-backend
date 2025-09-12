@@ -3,10 +3,8 @@ from django.urls import path
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 @api_view(["GET"])
@@ -28,11 +26,14 @@ def me_view(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("health/", health_view),
-    # Auth JWT
-    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # Me
-    path("api/me/", me_view),
+    path("api/v1/health/", health_view),
+    # Auth JWT (v1)
+    path("api/v1/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # Me (v1)
+    path("api/v1/me/", me_view),
+    # Docs
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]
 

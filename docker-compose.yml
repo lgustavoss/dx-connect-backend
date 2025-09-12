@@ -17,6 +17,31 @@ services:
     volumes:
       - .:/app
 
+  worker:
+    build: .
+    container_name: dxconnect_worker
+    command: ["celery", "-A", "config", "worker", "-l", "INFO"]
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  beat:
+    build: .
+    container_name: dxconnect_beat
+    command: ["celery", "-A", "config", "beat", "-l", "INFO"]
+    env_file:
+      - .env
+    depends_on:
+      - worker
+    volumes:
+      - .:/app
+
   db:
     image: postgres:15-alpine
     container_name: dxconnect_db
