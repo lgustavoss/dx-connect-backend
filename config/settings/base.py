@@ -107,6 +107,22 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "DX Connect API",
     "DESCRIPTION": "API do sistema DX Connect",
     "VERSION": "1.0.0",
+    "SERVE_PERMISSIONS": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "SERVE_PUBLIC": True,
+    "SECURITY": [
+        {"bearerAuth": []}
+    ],
+    "COMPONENTS": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
 }
 
 # CORS
