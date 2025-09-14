@@ -8,6 +8,7 @@ from core.serializers import ConfigSerializer
 from core.serializers.chat import ChatSettingsSerializer
 from core.serializers.company import CompanyDataSerializer
 from core.serializers.email import EmailSettingsSerializer
+from core.serializers.appearance import AppearanceSettingsSerializer
 from core.utils import get_or_create_config_with_defaults
 
 
@@ -88,3 +89,21 @@ class EmailConfigView(APIView):
         if masked.get("smtp_senha"):
             masked["smtp_senha"] = "***"
         return Response(masked)
+
+
+class AppearanceConfigView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, _request):
+        obj, _ = get_or_create_config_with_defaults()
+        return Response(AppearanceSettingsSerializer(obj.appearance_settings).data)
+
+    def patch(self, request):
+        obj, _ = get_or_create_config_with_defaults()
+        serializer = AppearanceSettingsSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated = {**obj.appearance_settings, **serializer.validated_data}
+        obj.appearance_settings = updated
+        obj.full_clean()
+        obj.save()
+        return Response(AppearanceSettingsSerializer(obj.appearance_settings).data)

@@ -4,6 +4,7 @@ from core.defaults import (
     DEFAULT_CHAT_SETTINGS,
     DEFAULT_COMPANY_DATA,
     DEFAULT_EMAIL_SETTINGS,
+    DEFAULT_APPEARANCE_SETTINGS,
 )
 from core.models import Config
 
@@ -19,6 +20,9 @@ def get_or_create_config_with_defaults() -> Tuple[Config, bool]:
         changed = True
     if not obj.email_settings:
         obj.email_settings = DEFAULT_EMAIL_SETTINGS
+        changed = True
+    if not getattr(obj, "appearance_settings", None):
+        obj.appearance_settings = DEFAULT_APPEARANCE_SETTINGS
         changed = True
     if changed:
         obj.full_clean()

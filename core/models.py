@@ -17,6 +17,7 @@ class Config(models.Model):
     company_data = models.JSONField(default=dict, blank=True)
     chat_settings = models.JSONField(default=dict, blank=True)
     email_settings = models.JSONField(default=dict, blank=True)
+    appearance_settings = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name = _("Configuração")

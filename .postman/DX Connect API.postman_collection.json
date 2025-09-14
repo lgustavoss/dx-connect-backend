@@ -183,6 +183,76 @@
         "body": {"mode": "raw", "raw": "{\n  \"smtp_host\": \"smtp.mailtrap.io\"\n}"},
         "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}
       }
+    },
+    {
+      "name": "Config Appearance - Get",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}
+      }
+    },
+    {
+      "name": "Config Appearance - Patch",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"primary_color\": \"#2563eb\"\n}"},
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}
+      }
+    },
+    {
+      "name": "Config Appearance - Upload Logo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"}
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "kind", "value": "logo", "type": "text"},
+            {"key": "file", "type": "file", "src": []}
+          ]
+        },
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}
+      }
+    },
+    {
+      "name": "Config Appearance - Delete Logo",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/?kind=logo", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""], "query": [{"key": "kind", "value": "logo"}]}
+      }
+    },
+    {
+      "name": "Config Appearance - Upload Favicon",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"}
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "kind", "value": "favicon", "type": "text"},
+            {"key": "file", "type": "file", "src": []}
+          ]
+        },
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}
+      }
+    },
+    {
+      "name": "Config Appearance - Delete Favicon",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/?kind=favicon", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""], "query": [{"key": "kind", "value": "favicon"}]}
+      }
     }
   ],
   "variable": [

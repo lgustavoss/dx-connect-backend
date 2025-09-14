@@ -46,3 +46,11 @@ DEFAULT_EMAIL_SETTINGS = {
     "smtp_ssl": True,
     "email_from": "",
 }
+
+DEFAULT_APPEARANCE_SETTINGS = {
+    "login_logo_url": "",
+    "favicon_url": "",
+    "primary_color": "#0ea5e9",
+    "secondary_color": "#111827",
+    "custom_css": "",
+}
