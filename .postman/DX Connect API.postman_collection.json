@@ -90,6 +90,39 @@
           "path": ["api", "v1", "me", ""]
         }
       }
+    },
+    {
+      "name": "Config - Get",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"}
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/config/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "config", ""]
+        }
+      }
+    },
+    {
+      "name": "Config - Put (exemplo)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_data\": {\n    \"razao_social\": \"Empresa X LTDA\",\n    \"nome_fantasia\": \"Empresa X\",\n    \"cnpj\": \"00000000000191\",\n    \"inscricao_estadual\": \"ISENTO\",\n    \"regime_tributario\": \"1\",\n    \"telefone\": \"11999999999\",\n    \"email\": \"contato@empresa.com\",\n    \"endereco\": {\n      \"cep\": \"01001000\",\n      \"logradouro\": \"Rua Exemplo\",\n      \"numero\": \"100\",\n      \"bairro\": \"Centro\",\n      \"cidade\": \"São Paulo\",\n      \"uf\": \"SP\"\n    }\n  },\n  \"chat_settings\": {\n    \"mensagem_saudacao\": \"Olá! Como podemos ajudar?\",\n    \"mensagem_fora_expediente\": \"Estamos fora do horário de atendimento.\",\n    \"mensagem_encerramento\": \"Obrigado pelo contato!\",\n    \"mensagem_inatividade\": \"Estamos encerrando por inatividade.\",\n    \"timeout_inatividade_minutos\": 15,\n    \"limite_chats_simultaneos\": 5,\n    \"horario_funcionamento\": {\n      \"segunda\": { \"inicio\": \"08:00\", \"fim\": \"18:00\" }\n    }\n  },\n  \"email_settings\": {\n    \"smtp_host\": \"smtp.mailtrap.io\",\n    \"smtp_port\": 587,\n    \"smtp_usuario\": \"usuario\",\n    \"smtp_senha\": \"senha\",\n    \"smtp_ssl\": true,\n    \"email_from\": \"contato@empresa.com\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/config/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "config", ""]
+        }
+      }
     }
   ],
   "variable": [
