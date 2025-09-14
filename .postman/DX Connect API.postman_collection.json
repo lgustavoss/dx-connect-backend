@@ -123,6 +123,66 @@
           "path": ["api", "v1", "config", ""]
         }
       }
+    },
+    {
+      "name": "Config Company - Get",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}
+      }
+    },
+    {
+      "name": "Config Company - Patch",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"razao_social\": \"Empresa X LTDA\"\n}"},
+        "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}
+      }
+    },
+    {
+      "name": "Config Chat - Get",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}
+      }
+    },
+    {
+      "name": "Config Chat - Patch",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"mensagem_saudacao\": \"Oi!\"\n}"},
+        "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}
+      }
+    },
+    {
+      "name": "Config Email - Get",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+        "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}
+      }
+    },
+    {
+      "name": "Config Email - Patch",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{access}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"smtp_host\": \"smtp.mailtrap.io\"\n}"},
+        "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}
+      }
     }
   ],
   "variable": [

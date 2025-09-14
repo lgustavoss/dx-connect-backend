@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from core.views import ConfigView
+from core.views.config import ChatConfigView, CompanyConfigView, EmailConfigView
 
 
 @api_view(["GET"])
@@ -35,6 +36,9 @@ urlpatterns = [
     path("api/v1/me/", me_view),
     # Config (v1)
     path("api/v1/config/", ConfigView.as_view()),
+    path("api/v1/config/company/", CompanyConfigView.as_view()),
+    path("api/v1/config/chat/", ChatConfigView.as_view()),
+    path("api/v1/config/email/", EmailConfigView.as_view()),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
