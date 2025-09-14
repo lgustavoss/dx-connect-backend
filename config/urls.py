@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from core.views import ConfigView
 
 
 @api_view(["GET"])
@@ -32,6 +33,8 @@ urlpatterns = [
     path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # Me (v1)
     path("api/v1/me/", me_view),
+    # Config (v1)
+    path("api/v1/config/", ConfigView.as_view()),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

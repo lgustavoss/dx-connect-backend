@@ -12,4 +12,5 @@ celery==5.4.0
 django-redis==5.4.0
 sentry-sdk==2.13.0
 python-json-logger==2.0.7
+cryptography==43.0.1
 

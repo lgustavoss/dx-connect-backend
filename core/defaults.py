@@ -1,0 +1,48 @@
+DEFAULT_COMPANY_DATA = {
+    "razao_social": "",
+    "nome_fantasia": "",
+    "cnpj": "",
+    "inscricao_estadual": "",
+    "inscricao_municipal": "",
+    "regime_tributario": "1",
+    "cnae_principal": "",
+    "telefone": "",
+    "email": "",
+    "site": "",
+    "endereco": {
+        "cep": "",
+        "logradouro": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "SP",
+    },
+}
+
+DEFAULT_CHAT_SETTINGS = {
+    "mensagem_saudacao": "Olá! Como podemos ajudar?",
+    "mensagem_fora_expediente": "Estamos fora do horário de atendimento.",
+    "mensagem_encerramento": "Obrigado pelo contato!",
+    "mensagem_inatividade": "Estamos encerrando por inatividade.",
+    "timeout_inatividade_minutos": 15,
+    "limite_chats_simultaneos": 5,
+    "horario_funcionamento": {
+        "segunda": {"inicio": "08:00", "fim": "18:00"},
+        "terca": {"inicio": "08:00", "fim": "18:00"},
+        "quarta": {"inicio": "08:00", "fim": "18:00"},
+        "quinta": {"inicio": "08:00", "fim": "18:00"},
+        "sexta": {"inicio": "08:00", "fim": "18:00"},
+        "sabado": {"inicio": None, "fim": None},
+        "domingo": {"inicio": None, "fim": None},
+    },
+}
+
+DEFAULT_EMAIL_SETTINGS = {
+    "smtp_host": "",
+    "smtp_port": 587,
+    "smtp_usuario": "",
+    "smtp_senha": "",
+    "smtp_ssl": True,
+    "email_from": "",
+}
