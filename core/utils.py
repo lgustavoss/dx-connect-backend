@@ -25,7 +25,7 @@ def get_or_create_config_with_defaults() -> Tuple[Config, bool]:
         obj.appearance_settings = DEFAULT_APPEARANCE_SETTINGS
         changed = True
     if changed:
-        obj.full_clean()
+        # Não validar defaults rígidos na criação; endpoints específicos validam antes de persistir alterações
         obj.save()
     return obj, created
 

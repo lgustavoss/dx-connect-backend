@@ -88,4 +88,6 @@ def validate_email_settings(data: Dict[str, Any]) -> None:
         "email_from": True,
     }
     _require_keys(data, required, "email_settings.")
-    EmailValidator()(data["email_from"])
+    # Validar email apenas se houver valor (permite defaults vazios no init)
+    if data.get("email_from"):
+        EmailValidator()(data["email_from"])

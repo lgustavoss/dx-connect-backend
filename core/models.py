@@ -28,18 +28,18 @@ class Config(models.Model):
 
     def clean(self) -> None:
         errors: Dict[str, Any] = {}
-        try:
-            validate_company_data(self.company_data or {})
-        except ValidationError as exc:
-            errors.update(exc.message_dict)
-        try:
-            validate_chat_settings(self.chat_settings or {})
-        except ValidationError as exc:
-            errors.update(exc.message_dict)
-        try:
-            validate_email_settings(self.email_settings or {})
-        except ValidationError as exc:
-            errors.update(exc.message_dict)
+        for fn, section, value in (
+            (validate_company_data, "company_data", self.company_data or {}),
+            (validate_chat_settings, "chat_settings", self.chat_settings or {}),
+            (validate_email_settings, "email_settings", self.email_settings or {}),
+        ):
+            try:
+                fn(value)
+            except ValidationError as exc:
+                if hasattr(exc, "message_dict"):
+                    errors.update(exc.message_dict)
+                else:
+                    errors[section] = exc.messages
         if errors:
             raise ValidationError(errors)
 
