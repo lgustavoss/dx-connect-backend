@@ -10,6 +10,13 @@ from core.serializers.company import CompanyDataSerializer
 from core.serializers.email import EmailSettingsSerializer
 from core.serializers.appearance import AppearanceSettingsSerializer
 from core.utils import get_or_create_config_with_defaults
+from core.defaults import (
+    DEFAULT_COMPANY_DATA,
+    DEFAULT_CHAT_SETTINGS,
+    DEFAULT_EMAIL_SETTINGS,
+    DEFAULT_APPEARANCE_SETTINGS,
+)
+from drf_spectacular.utils import OpenApiExample, extend_schema
 
 
 class ConfigView(APIView):
@@ -19,11 +26,28 @@ class ConfigView(APIView):
         obj, _ = get_or_create_config_with_defaults()
         return obj
 
+    @extend_schema(
+        operation_id="config_retrieve_all",
+        summary="Obtém todas as configurações",
+        responses={200: ConfigSerializer},
+        examples=[
+            OpenApiExample(
+                "Exemplo de retorno",
+                value=ConfigSerializer.defaults(),
+            )
+        ],
+    )
     def get(self, _request):
         obj = self.get_object()
         data = ConfigSerializer(obj).data
         return Response(data)
 
+    @extend_schema(
+        operation_id="config_update_all",
+        summary="Atualiza todas as configurações",
+        request=ConfigSerializer,
+        responses={200: ConfigSerializer},
+    )
     def put(self, request):
         obj = self.get_object()
         serializer = ConfigSerializer(instance=obj, data=request.data, partial=False)
@@ -35,10 +59,28 @@ class ConfigView(APIView):
 class CompanyConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="config_company_retrieve",
+        summary="Obtém dados da empresa",
+        responses={200: CompanyDataSerializer},
+        examples=[OpenApiExample("Exemplo", value=DEFAULT_COMPANY_DATA)],
+    )
     def get(self, _request):
         obj, _ = get_or_create_config_with_defaults()
         return Response(CompanyDataSerializer(obj.company_data).data)
 
+    @extend_schema(
+        operation_id="config_company_partial_update",
+        summary="Atualiza parcialmente dados da empresa",
+        request=CompanyDataSerializer,
+        responses={200: CompanyDataSerializer},
+        examples=[
+            OpenApiExample(
+                "Patch parcial",
+                value={"razao_social": "Empresa X LTDA"},
+            )
+        ],
+    )
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = CompanyDataSerializer(data=request.data, partial=True)
@@ -53,10 +95,23 @@ class CompanyConfigView(APIView):
 class ChatConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="config_chat_retrieve",
+        summary="Obtém configurações de chat",
+        responses={200: ChatSettingsSerializer},
+        examples=[OpenApiExample("Exemplo", value=DEFAULT_CHAT_SETTINGS)],
+    )
     def get(self, _request):
         obj, _ = get_or_create_config_with_defaults()
         return Response(ChatSettingsSerializer(obj.chat_settings).data)
 
+    @extend_schema(
+        operation_id="config_chat_partial_update",
+        summary="Atualiza parcialmente configurações de chat",
+        request=ChatSettingsSerializer,
+        responses={200: ChatSettingsSerializer},
+        examples=[OpenApiExample("Patch parcial", value={"mensagem_saudacao": "Olá!"})],
+    )
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = ChatSettingsSerializer(data=request.data, partial=True)
@@ -71,11 +126,24 @@ class ChatConfigView(APIView):
 class EmailConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="config_email_retrieve",
+        summary="Obtém configurações de e-mail (senha descriptografada)",
+        responses={200: EmailSettingsSerializer},
+        examples=[OpenApiExample("Exemplo", value=DEFAULT_EMAIL_SETTINGS)],
+    )
     def get(self, _request):
         obj, _ = get_or_create_config_with_defaults()
         data = obj.get_decrypted_email_settings()
         return Response(EmailSettingsSerializer(data).data)
 
+    @extend_schema(
+        operation_id="config_email_partial_update",
+        summary="Atualiza parcialmente configurações de e-mail",
+        request=EmailSettingsSerializer,
+        responses={200: EmailSettingsSerializer},
+        examples=[OpenApiExample("Patch parcial", value={"smtp_host": "smtp.mailtrap.io"})],
+    )
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = EmailSettingsSerializer(data=request.data, partial=True)
@@ -94,10 +162,23 @@ class EmailConfigView(APIView):
 class AppearanceConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="config_appearance_retrieve",
+        summary="Obtém configurações de aparência",
+        responses={200: AppearanceSettingsSerializer},
+        examples=[OpenApiExample("Exemplo", value=DEFAULT_APPEARANCE_SETTINGS)],
+    )
     def get(self, _request):
         obj, _ = get_or_create_config_with_defaults()
         return Response(AppearanceSettingsSerializer(obj.appearance_settings).data)
 
+    @extend_schema(
+        operation_id="config_appearance_partial_update",
+        summary="Atualiza parcialmente configurações de aparência",
+        request=AppearanceSettingsSerializer,
+        responses={200: AppearanceSettingsSerializer},
+        examples=[OpenApiExample("Patch parcial", value={"primary_color": "#2563eb"})],
+    )
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = AppearanceSettingsSerializer(data=request.data, partial=True)
