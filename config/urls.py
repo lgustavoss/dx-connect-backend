@@ -5,6 +5,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from core.views import ConfigView
+from core.views.config import AppearanceConfigView, ChatConfigView, CompanyConfigView, EmailConfigView
+from core.views.upload import AppearanceUploadView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 @api_view(["GET"])
@@ -32,9 +37,17 @@ urlpatterns = [
     path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # Me (v1)
     path("api/v1/me/", me_view),
+    # Config (v1)
+    path("api/v1/config/", ConfigView.as_view()),
+    path("api/v1/config/company/", CompanyConfigView.as_view()),
+    path("api/v1/config/chat/", ChatConfigView.as_view()),
+    path("api/v1/config/email/", EmailConfigView.as_view()),
+    path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
+    path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

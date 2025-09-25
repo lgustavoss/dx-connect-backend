@@ -1,0 +1,7 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentação do projeto
+    url: https://github.com/lgustavoss/dx-connect-backend#readme
+    about: Leia o README antes de abrir uma issue
+
+

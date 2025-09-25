@@ -3,100 +3,84 @@
     "name": "DX Connect API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
+  "event": [
     {
-      "name": "Health",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/v1/health/",
-          "host": ["{{base_url}}"],
-          "path": ["api", "v1", "health", ""]
-        }
-      }
-    },
-    {
-      "name": "Auth - Token",
-      "request": {
-        "method": "POST",
-        "header": [
-          {"key": "Content-Type", "value": "application/json"}
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/v1/auth/token/",
-          "host": ["{{base_url}}"],
-          "path": ["api", "v1", "auth", "token", ""]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "const json = pm.response.json();",
-              "pm.collectionVariables.set('access', json.access);",
-              "pm.collectionVariables.set('refresh', json.refresh);"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Auth - Refresh",
-      "request": {
-        "method": "POST",
-        "header": [
-          {"key": "Content-Type", "value": "application/json"}
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/v1/auth/refresh/",
-          "host": ["{{base_url}}"],
-          "path": ["api", "v1", "auth", "refresh", ""]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "const json = pm.response.json();",
-              "pm.collectionVariables.set('access', json.access);"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Me",
-      "request": {
-        "method": "GET",
-        "header": [
-          {"key": "Authorization", "value": "Bearer {{access}}"}
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/v1/me/",
-          "host": ["{{base_url}}"],
-          "path": ["api", "v1", "me", ""]
-        }
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.environment.get('access')) {",
+          "  pm.sendRequest({",
+          "    url: pm.environment.get('base_url') + '/api/v1/auth/token/',",
+          "    method: 'POST',",
+          "    header: { 'Content-Type': 'application/json' },",
+          "    body: { mode: 'raw', raw: JSON.stringify({ username: pm.environment.get('username'), password: pm.environment.get('password') }) }",
+          "  }, function (err, res) {",
+          "    if (!err && res.code === 200) {",
+          "      var j = res.json();",
+          "      pm.environment.set('access', j.access);",
+          "      pm.environment.set('refresh', j.refresh);",
+          "    }",
+          "  });",
+          "}"
+        ]
       }
     }
   ],
-  "variable": [
-    {"key": "base_url", "value": "http://localhost:8001"},
-    {"key": "username", "value": "admin"},
-    {"key": "password", "value": "admin"},
-    {"key": "access", "value": ""},
-    {"key": "refresh", "value": ""}
+  "item": [
+    {
+      "name": "00 - Health",
+      "item": [
+        {"name": "GET /api/v1/health/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/v1/health/", "host": ["{{base_url}}"], "path": ["api","v1","health",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });","pm.test('Body has status ok', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"]}}]}
+      ]
+    },
+    {
+      "name": "01 - Auth",
+      "item": [
+        {"name": "POST /api/v1/auth/token/", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/auth/token/", "host": ["{{base_url}}"], "path": ["api","v1","auth","token",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.environment.set('access', json.access);","pm.environment.set('refresh', json.refresh);","pm.test('Tokens presentes', () => { pm.expect(json.access).to.be.a('string'); pm.expect(json.refresh).to.be.a('string'); });"]}}]},
+        {"name": "POST /api/v1/auth/refresh/", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/auth/refresh/", "host": ["{{base_url}}"], "path": ["api","v1","auth","refresh",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.environment.set('access', json.access);","pm.test('Access presente', () => { pm.expect(json.access).to.be.a('string'); });"]}}]}
+      ]
+    },
+    {
+      "name": "02 - Me",
+      "item": [
+        {"name": "GET /api/v1/me/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.test('Tem username', () => pm.expect(json.username).to.be.a('string'));"]}}]}
+      ]
+    },
+    {
+      "name": "03 - Config",
+      "item": [
+        {"name": "GET /api/v1/config/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/", "host": ["{{base_url}}"], "path": ["api","v1","config",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "GET /api/v1/config/company/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/company/ (válido)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"razao_social\": \"Empresa X LTDA\",\n  \"nome_fantasia\": \"Empresa X\",\n  \"cnpj\": \"00000000000191\",\n  \"inscricao_estadual\": \"ISENTO\",\n  \"regime_tributario\": \"1\",\n  \"telefone\": \"11999999999\",\n  \"email\": \"contato@empresa.com\",\n  \"endereco\": {\n    \"cep\": \"01001000\",\n    \"logradouro\": \"Rua Exemplo\",\n    \"numero\": \"100\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"uf\": \"SP\"\n  }\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "GET /api/v1/config/chat/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/chat/ (mensagem_saudacao)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"mensagem_saudacao\": \"Olá!\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "GET /api/v1/config/email/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/email/ (smtp_host)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"smtp_host\": \"smtp.mailtrap.io\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "GET /api/v1/config/appearance/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/appearance/ (primary_color)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"primary_color\": \"#2563eb\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+      ]
+    },
+    {
+      "name": "04 - Upload",
+      "item": [
+        {"name": "POST /api/v1/config/appearance/upload/ (logo)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "body": {"mode": "formdata", "formdata": [{"key":"kind","value":"logo","type":"text"},{"key":"file","type":"file","src":["{{upload_file}}"]}]}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "DELETE /api/v1/config/appearance/upload/?kind=logo", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/?kind=logo", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""], "query": [{"key":"kind","value":"logo"}]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('204', ()=> pm.response.to.have.status(204));"]}}]}
+      ]
+    },
+    {
+      "name": "05 - Docs",
+      "item": [
+        {"name": "GET /api/schema/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/schema/", "host": ["{{base_url}}"], "path": ["api","schema",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "GET /api/docs/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/docs/", "host": ["{{base_url}}"], "path": ["api","docs",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+      ]
+    },
+    {
+      "name": "99 - Negativos",
+      "item": [
+        {"name": "GET /api/v1/me/ sem auth (401)", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('401', ()=> pm.response.to.have.status(401));"]}}]},
+        {"name": "POST upload sem file/kind (400)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "body": {"mode": "formdata", "formdata": []}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('400', ()=> pm.response.to.have.status(400));"]}}]}
+      ]
+    }
   ]
 }

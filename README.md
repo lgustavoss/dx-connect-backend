@@ -95,3 +95,34 @@ API backend para o sistema de gestão e atendimento ao cliente DX Connect.
 Validação recomendada (frontend-first):
 - Testes via Postman/Insomnia (coleção em `.postman/`)
 - Evitar depender do Django Admin para validação de features
+
+## 📚 Diretrizes de API (Guidelines)
+
+- Versão: prefixo `/api/v1` em todos os endpoints
+- Paginação: PageNumberPagination (query params: `page`, `page_size`; padrão 20, máx. 100)
+- Idempotência: requisições que podem ser repetidas devem retornar identificadores estáveis (ex.: `message_id`)
+- Cache: usar cache curto (ex.: 30s) para listas estáveis quando aplicável
+
+## ❗ Padrão de Erros (simplificado)
+
+Formato base (RFC 7807-like):
+```json
+{
+  "error": {
+    "code": "INVALID_PAYLOAD",
+    "message": "Campo 'to' é obrigatório",
+    "details": { "to": ["Este campo é obrigatório."] },
+    "request_id": "req-123",
+    "timestamp": "2024-01-01T10:00:00Z"
+  }
+}
+```
+
+Exemplos de códigos: `INVALID_PAYLOAD`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `UPSTREAM_ERROR`, `INTERNAL_ERROR`.
+
+## 📦 Contratos (exemplos)
+
+- Envio WhatsApp (POST) retorna `202 Accepted` com `message_id` para enfileiramento
+- Eventos em tempo real: payloads versionados com `version: v1`
+
+Para contratos completos, consulte o schema OpenAPI em `/api/schema/` e os exemplos nos endpoints do Swagger/Redoc.

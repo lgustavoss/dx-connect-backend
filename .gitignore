@@ -206,3 +206,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 staticfiles/
+.postman/tmp.env.json
+.postman/reports/
+.postman/*.html
