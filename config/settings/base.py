@@ -163,12 +163,12 @@ LOGGING = {
     "disable_existing_loggers": False,
     "filters": {
         "request_id": {
-            "()": "core.utils.RequestIdLogFilter",
+            "()": "core.logging.RequestIdLogFilter",
         }
     },
     "formatters": {
         "json": {
-            "()": "python_json_logger.jsonlogger.JsonFormatter",
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
             "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s",
         }
     },
