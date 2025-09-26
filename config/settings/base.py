@@ -43,6 +43,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Request ID ao fim para capturar após resolução de auth/msgs
+    "core.middleware.RequestIdMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -152,5 +154,36 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
+# LOGGING em JSON, com request_id
+LOG_LEVEL = env("DJANGO_LOG_LEVEL", default="INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {
+            "()": "core.utils.RequestIdLogFilter",
+        }
+    },
+    "formatters": {
+        "json": {
+            "()": "python_json_logger.jsonlogger.JsonFormatter",
+            "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_id"],
+        }
+    },
+    "root": {"handlers": ["console"], "level": LOG_LEVEL},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+        "django": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+    },
+}
 
 

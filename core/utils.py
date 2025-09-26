@@ -9,6 +9,18 @@ from core.defaults import (
 from core.models import Config
 
 
+class RequestIdLogFilter:
+    """Filtro de logging para incluir request_id no registro."""
+
+    def filter(self, record):  # type: ignore[no-untyped-def]
+        try:
+            from core.middleware import request_id_var  # import interno para evitar ciclos
+            record.request_id = request_id_var.get()
+        except Exception:
+            record.request_id = "-"
+        return True
+
+
 def get_or_create_config_with_defaults() -> Tuple[Config, bool]:
     obj, created = Config.objects.get_or_create()
     changed = False
