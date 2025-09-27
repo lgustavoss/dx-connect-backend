@@ -68,6 +68,12 @@ class ConfigView(APIView):
 class CompanyConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigCompany())
+        return base
+
     @extend_schema(
         operation_id="config_company_retrieve",
         summary="Obtém dados da empresa",
@@ -90,7 +96,6 @@ class CompanyConfigView(APIView):
             )
         ],
     )
-    permission_classes = [IsAuthenticated, CanManageConfigCompany]
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = CompanyDataSerializer(data=request.data, partial=True)
@@ -104,6 +109,12 @@ class CompanyConfigView(APIView):
 
 class ChatConfigView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigChat())
+        return base
 
     @extend_schema(
         operation_id="config_chat_retrieve",
@@ -122,7 +133,6 @@ class ChatConfigView(APIView):
         responses={200: ChatSettingsSerializer},
         examples=[OpenApiExample("Patch parcial", value={"mensagem_saudacao": "Olá!"})],
     )
-    permission_classes = [IsAuthenticated, CanManageConfigChat]
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = ChatSettingsSerializer(data=request.data, partial=True)
@@ -136,6 +146,12 @@ class ChatConfigView(APIView):
 
 class EmailConfigView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigEmail())
+        return base
 
     @extend_schema(
         operation_id="config_email_retrieve",
@@ -155,7 +171,6 @@ class EmailConfigView(APIView):
         responses={200: EmailSettingsSerializer},
         examples=[OpenApiExample("Patch parcial", value={"smtp_host": "smtp.mailtrap.io"})],
     )
-    permission_classes = [IsAuthenticated, CanManageConfigEmail]
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = EmailSettingsSerializer(data=request.data, partial=True)
@@ -174,6 +189,12 @@ class EmailConfigView(APIView):
 class AppearanceConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigAppearance())
+        return base
+
     @extend_schema(
         operation_id="config_appearance_retrieve",
         summary="Obtém configurações de aparência",
@@ -191,7 +212,6 @@ class AppearanceConfigView(APIView):
         responses={200: AppearanceSettingsSerializer},
         examples=[OpenApiExample("Patch parcial", value={"primary_color": "#2563eb"})],
     )
-    permission_classes = [IsAuthenticated, CanManageConfigAppearance]
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = AppearanceSettingsSerializer(data=request.data, partial=True)
@@ -205,6 +225,12 @@ class AppearanceConfigView(APIView):
 
 class WhatsAppConfigView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigWhatsApp())
+        return base
 
     @extend_schema(
         operation_id="config_whatsapp_retrieve",
@@ -229,7 +255,6 @@ class WhatsAppConfigView(APIView):
         responses={200: WhatsAppSettingsSerializer},
         examples=[OpenApiExample("Patch parcial", value={"enabled": True})],
     )
-    permission_classes = [IsAuthenticated, CanManageConfigWhatsApp]
     def patch(self, request):
         obj, _ = get_or_create_config_with_defaults()
         serializer = WhatsAppSettingsSerializer(data=request.data, partial=True)

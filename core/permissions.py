@@ -31,3 +31,7 @@ class CanManageConfigWhatsApp(HasDjangoPerm):
     required_perm = "core.manage_config_whatsapp"
 
 
+class CanManageAuth(HasDjangoPerm):
+    required_perm = "accounts.manage_auth"
+
+
