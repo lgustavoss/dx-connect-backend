@@ -62,6 +62,14 @@
       ]
     },
     {
+      "name": "04 - WhatsApp",
+      "item": [
+        {"name": "GET /api/v1/config/whatsapp/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/whatsapp/ (enable)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"enabled\": true\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
+        {"name": "PATCH /api/v1/config/whatsapp/ (session/proxy)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"session_data\": \"...\",\n  \"proxy_url\": \"http://user:pass@ip:port\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+      ]
+    },
+    {
       "name": "04 - Upload",
       "item": [
         {"name": "POST /api/v1/config/appearance/upload/ (logo)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "body": {"mode": "formdata", "formdata": [{"key":"kind","value":"logo","type":"text"},{"key":"file","type":"file","src":["{{upload_file}}"]}]}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},

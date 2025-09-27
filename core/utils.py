@@ -5,6 +5,7 @@ from core.defaults import (
     DEFAULT_COMPANY_DATA,
     DEFAULT_EMAIL_SETTINGS,
     DEFAULT_APPEARANCE_SETTINGS,
+    DEFAULT_WHATSAPP_SETTINGS,
 )
 from core.models import Config
 
@@ -23,6 +24,9 @@ def get_or_create_config_with_defaults() -> Tuple[Config, bool]:
         changed = True
     if not getattr(obj, "appearance_settings", None):
         obj.appearance_settings = DEFAULT_APPEARANCE_SETTINGS
+        changed = True
+    if not getattr(obj, "whatsapp_settings", None):
+        obj.whatsapp_settings = DEFAULT_WHATSAPP_SETTINGS
         changed = True
     if changed:
         # Não validar defaults rígidos na criação; endpoints específicos validam antes de persistir alterações

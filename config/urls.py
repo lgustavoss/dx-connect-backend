@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from core.views import ConfigView
-from core.views.config import AppearanceConfigView, ChatConfigView, CompanyConfigView, EmailConfigView
+from core.views.config import AppearanceConfigView, ChatConfigView, CompanyConfigView, EmailConfigView, WhatsAppConfigView
 from core.views.upload import AppearanceUploadView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -43,6 +43,7 @@ urlpatterns = [
     path("api/v1/config/chat/", ChatConfigView.as_view()),
     path("api/v1/config/email/", EmailConfigView.as_view()),
     path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
+    path("api/v1/config/whatsapp/", WhatsAppConfigView.as_view()),
     path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
