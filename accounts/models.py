@@ -10,3 +10,8 @@ class Agent(AbstractUser):
     def __str__(self) -> str:
         return self.display_name or self.username
 
+    class Meta(AbstractUser.Meta):
+        permissions = (
+            ("manage_auth", "Pode gerenciar autenticação (grupos e permissões)"),
+        )
+

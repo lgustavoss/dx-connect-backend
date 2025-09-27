@@ -8,6 +8,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from core.views import ConfigView
 from core.views.config import AppearanceConfigView, ChatConfigView, CompanyConfigView, EmailConfigView, WhatsAppConfigView
 from core.views.upload import AppearanceUploadView
+from accounts.views import (
+    AgentGroupsView,
+    GroupDetailView,
+    GroupListCreateView,
+    PermissionListView,
+)
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -45,6 +51,11 @@ urlpatterns = [
     path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
     path("api/v1/config/whatsapp/", WhatsAppConfigView.as_view()),
     path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
+    # AuthZ (v1)
+    path("api/v1/authz/permissions/", PermissionListView.as_view()),
+    path("api/v1/authz/groups/", GroupListCreateView.as_view()),
+    path("api/v1/authz/groups/<int:pk>/", GroupDetailView.as_view()),
+    path("api/v1/authz/agents/<int:agent_id>/groups/", AgentGroupsView.as_view()),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

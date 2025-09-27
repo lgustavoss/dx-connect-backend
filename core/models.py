@@ -30,6 +30,13 @@ class Config(models.Model):
         constraints = [
             models.UniqueConstraint(models.Value(1), name="config_singleton", violation_error_message="Apenas uma configuração é permitida.")
         ]
+        permissions = (
+            ("manage_config_company", "Pode gerenciar Config - Company"),
+            ("manage_config_chat", "Pode gerenciar Config - Chat"),
+            ("manage_config_email", "Pode gerenciar Config - Email"),
+            ("manage_config_appearance", "Pode gerenciar Config - Appearance"),
+            ("manage_config_whatsapp", "Pode gerenciar Config - WhatsApp"),
+        )
 
     def clean(self) -> None:
         errors: Dict[str, Any] = {}

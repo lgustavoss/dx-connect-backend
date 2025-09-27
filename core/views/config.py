@@ -10,6 +10,13 @@ from core.serializers.company import CompanyDataSerializer
 from core.serializers.email import EmailSettingsSerializer
 from core.serializers.appearance import AppearanceSettingsSerializer
 from core.serializers.whatsapp import WhatsAppSettingsSerializer
+from core.permissions import (
+    CanManageConfigAppearance,
+    CanManageConfigChat,
+    CanManageConfigCompany,
+    CanManageConfigEmail,
+    CanManageConfigWhatsApp,
+)
 from core.utils import get_or_create_config_with_defaults
 from core.defaults import (
     DEFAULT_COMPANY_DATA,
@@ -61,6 +68,12 @@ class ConfigView(APIView):
 class CompanyConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigCompany())
+        return base
+
     @extend_schema(
         operation_id="config_company_retrieve",
         summary="Obtém dados da empresa",
@@ -97,6 +110,12 @@ class CompanyConfigView(APIView):
 class ChatConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigChat())
+        return base
+
     @extend_schema(
         operation_id="config_chat_retrieve",
         summary="Obtém configurações de chat",
@@ -127,6 +146,12 @@ class ChatConfigView(APIView):
 
 class EmailConfigView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigEmail())
+        return base
 
     @extend_schema(
         operation_id="config_email_retrieve",
@@ -164,6 +189,12 @@ class EmailConfigView(APIView):
 class AppearanceConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigAppearance())
+        return base
+
     @extend_schema(
         operation_id="config_appearance_retrieve",
         summary="Obtém configurações de aparência",
@@ -194,6 +225,12 @@ class AppearanceConfigView(APIView):
 
 class WhatsAppConfigView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        base = [IsAuthenticated()]
+        if getattr(self, "request", None) and self.request.method in {"PATCH"}:
+            base.append(CanManageConfigWhatsApp())
+        return base
 
     @extend_schema(
         operation_id="config_whatsapp_retrieve",
