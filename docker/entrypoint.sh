@@ -42,5 +42,5 @@ if [ "${DJANGO_DEBUG}" != "True" ] && [ "${DJANGO_DEBUG}" != "true" ]; then
   python manage.py collectstatic --noinput || true
 fi
 
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+exec daphne -b 0.0.0.0 -p 8000 config.asgi:application
 
