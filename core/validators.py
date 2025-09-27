@@ -91,3 +91,22 @@ def validate_email_settings(data: Dict[str, Any]) -> None:
     # Validar email apenas se houver valor (permite defaults vazios no init)
     if data.get("email_from"):
         EmailValidator()(data["email_from"])
+
+
+def validate_whatsapp_settings(data: Dict[str, Any]) -> None:
+    if not isinstance(data, dict):
+        raise ValidationError({"whatsapp_settings": "Deve ser um objeto"})
+    required = {
+        "enabled": True,
+        "device_name": True,
+        "stealth_mode": True,
+        "human_delays": True,
+        "reconnect_backoff_seconds": True,
+        # segredos opcionais
+        "session_data": False,
+        "proxy_url": False,
+    }
+    _require_keys(data, required, "whatsapp_settings.")
+    # validações simples
+    if int(data.get("reconnect_backoff_seconds", 0)) < 0:
+        raise ValidationError({"whatsapp_settings.reconnect_backoff_seconds": "Deve ser >= 0"})

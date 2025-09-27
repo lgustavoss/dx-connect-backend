@@ -7,7 +7,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .crypto import decrypt_string, encrypt_string
-from .validators import validate_chat_settings, validate_company_data, validate_email_settings
+from .validators import (
+    validate_chat_settings,
+    validate_company_data,
+    validate_email_settings,
+)
 
 
 class Config(models.Model):
@@ -18,6 +22,7 @@ class Config(models.Model):
     chat_settings = models.JSONField(default=dict, blank=True)
     email_settings = models.JSONField(default=dict, blank=True)
     appearance_settings = models.JSONField(default=dict, blank=True)
+    whatsapp_settings = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name = _("Configuração")
@@ -50,6 +55,13 @@ class Config(models.Model):
         if smtp_senha and not (smtp_senha.startswith("gAAAA") or smtp_senha.startswith("eyJ")):
             email["smtp_senha"] = encrypt_string(smtp_senha)
             self.email_settings = email
+        # criptografar segredos do WhatsApp se em plain-text
+        wa = dict(self.whatsapp_settings or {})
+        for secret_key in ("session_data", "proxy_url"):
+            val: Optional[str] = wa.get(secret_key)
+            if val and not (str(val).startswith("gAAAA") or str(val).startswith("eyJ")):
+                wa[secret_key] = encrypt_string(str(val))
+        self.whatsapp_settings = wa
         super().save(*args, **kwargs)
 
     def get_decrypted_email_settings(self) -> Dict[str, Any]:
@@ -60,3 +72,13 @@ class Config(models.Model):
             if plain is not None:
                 email["smtp_senha"] = plain
         return email
+
+    def get_decrypted_whatsapp_settings(self) -> Dict[str, Any]:
+        wa = dict(self.whatsapp_settings or {})
+        for secret_key in ("session_data", "proxy_url"):
+            token = wa.get(secret_key)
+            if token:
+                plain = decrypt_string(str(token))
+                if plain is not None:
+                    wa[secret_key] = plain
+        return wa

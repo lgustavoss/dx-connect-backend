@@ -54,3 +54,15 @@ DEFAULT_APPEARANCE_SETTINGS = {
     "secondary_color": "#111827",
     "custom_css": "",
 }
+
+# WhatsApp: valores padrão (não sensíveis)
+DEFAULT_WHATSAPP_SETTINGS = {
+    "enabled": False,
+    "device_name": "DXConnect",
+    "stealth_mode": True,
+    "human_delays": True,
+    "reconnect_backoff_seconds": 5,
+    # Segredos/artefatos sensíveis (armazenados criptografados quando presentes)
+    "session_data": "",
+    "proxy_url": "",
+}

@@ -9,12 +9,14 @@ from core.serializers.chat import ChatSettingsSerializer
 from core.serializers.company import CompanyDataSerializer
 from core.serializers.email import EmailSettingsSerializer
 from core.serializers.appearance import AppearanceSettingsSerializer
+from core.serializers.whatsapp import WhatsAppSettingsSerializer
 from core.utils import get_or_create_config_with_defaults
 from core.defaults import (
     DEFAULT_COMPANY_DATA,
     DEFAULT_CHAT_SETTINGS,
     DEFAULT_EMAIL_SETTINGS,
     DEFAULT_APPEARANCE_SETTINGS,
+    DEFAULT_WHATSAPP_SETTINGS,
 )
 from drf_spectacular.utils import OpenApiExample, extend_schema
 
@@ -188,3 +190,45 @@ class AppearanceConfigView(APIView):
         obj.full_clean()
         obj.save()
         return Response(AppearanceSettingsSerializer(obj.appearance_settings).data)
+
+
+class WhatsAppConfigView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        operation_id="config_whatsapp_retrieve",
+        summary="Obtém configurações do WhatsApp (segredos mascarados)",
+        responses={200: WhatsAppSettingsSerializer},
+        examples=[OpenApiExample("Exemplo", value=DEFAULT_WHATSAPP_SETTINGS)],
+    )
+    def get(self, _request):
+        obj, _ = get_or_create_config_with_defaults()
+        data = obj.get_decrypted_whatsapp_settings()
+        # mascarar segredos
+        masked = dict(data)
+        for k in ("session_data", "proxy_url"):
+            if masked.get(k):
+                masked[k] = "***"
+        return Response(masked)
+
+    @extend_schema(
+        operation_id="config_whatsapp_partial_update",
+        summary="Atualiza parcialmente configurações do WhatsApp",
+        request=WhatsAppSettingsSerializer,
+        responses={200: WhatsAppSettingsSerializer},
+        examples=[OpenApiExample("Patch parcial", value={"enabled": True})],
+    )
+    def patch(self, request):
+        obj, _ = get_or_create_config_with_defaults()
+        serializer = WhatsAppSettingsSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated = {**obj.get_decrypted_whatsapp_settings(), **serializer.validated_data}
+        obj.whatsapp_settings = updated
+        obj.full_clean()
+        obj.save()
+        # resposta mascarada
+        masked = dict(obj.whatsapp_settings)
+        for k in ("session_data", "proxy_url"):
+            if masked.get(k):
+                masked[k] = "***"
+        return Response(masked)
