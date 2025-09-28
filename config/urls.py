@@ -7,6 +7,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from core.views import ConfigView
 from core.views.config import AppearanceConfigView, ChatConfigView, CompanyConfigView, EmailConfigView, WhatsAppConfigView
+from core.views.whatsapp import (
+    WhatsAppSessionStartView,
+    WhatsAppSessionStopView,
+    WhatsAppSessionStatusView,
+    WhatsAppSendMessageView,
+)
 from core.views.upload import AppearanceUploadView
 from accounts.views import (
     AgentGroupsView,
@@ -51,6 +57,11 @@ urlpatterns = [
     path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
     path("api/v1/config/whatsapp/", WhatsAppConfigView.as_view()),
     path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
+    # WhatsApp Session/Messages (stub)
+    path("api/v1/whatsapp/session/start", WhatsAppSessionStartView.as_view()),
+    path("api/v1/whatsapp/session", WhatsAppSessionStopView.as_view()),
+    path("api/v1/whatsapp/session/status", WhatsAppSessionStatusView.as_view()),
+    path("api/v1/whatsapp/messages", WhatsAppSendMessageView.as_view()),
     # AuthZ (v1)
     path("api/v1/authz/permissions/", PermissionListView.as_view()),
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),
