@@ -8,6 +8,7 @@ from asgiref.sync import async_to_sync
 from config.asgi import application
 from accounts.models import Agent
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import Permission
 
 
 def make_token(user: Agent) -> str:
@@ -20,6 +21,9 @@ class WhatsAppSessionTests(TransactionTestCase):
 
     def test_session_flow_and_message_events(self):
         user = Agent.objects.create_user(username="u1", password="p")
+        # Conceder permissão necessária para iniciar sessão e enviar mensagens
+        perm = Permission.objects.get(codename="manage_config_whatsapp")
+        user.user_permissions.add(perm)
         token = make_token(user)
 
         communicator = WebsocketCommunicator(application, f"/ws/whatsapp/?token={token}")
