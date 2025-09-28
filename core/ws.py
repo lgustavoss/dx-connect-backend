@@ -8,6 +8,7 @@ from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
+from urllib.parse import parse_qs
 
 
 User = get_user_model()
@@ -29,6 +30,21 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
 
 class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
+        if not getattr(self.scope, "user", None) or not self.scope["user"].is_authenticated:
+            # Fallback: tentar autenticar via token no query string
+            try:
+                query = self.scope.get("query_string", b"").decode()
+                params = parse_qs(query)
+                token = (params.get("token") or [None])[0]
+                if token:
+                    access = AccessToken(token)
+                    user_id = access.get("user_id")
+                    if user_id:
+                        user = await sync_to_async(lambda: User.objects.filter(pk=user_id).first())()
+                        if user:
+                            self.scope["user"] = user
+            except Exception:
+                pass
         if not getattr(self.scope, "user", None) or not self.scope["user"].is_authenticated:
             await self.close(code=4001)
             return
