@@ -6,6 +6,7 @@ import pytest
 from channels.testing import WebsocketCommunicator
 from django.test import override_settings
 from rest_framework.test import APIClient
+from asgiref.sync import sync_to_async
 
 from config.asgi import application
 from accounts.models import Agent
@@ -19,7 +20,7 @@ def make_token(user: Agent) -> str:
 @pytest.mark.django_db(transaction=True)
 @override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
 async def test_session_flow_and_message_events(settings):
-    user = Agent.objects.create_user(username="u1", password="p")
+    user = await sync_to_async(Agent.objects.create_user)(username="u1", password="p")
     token = make_token(user)
 
     # Conectar WS
@@ -31,7 +32,7 @@ async def test_session_flow_and_message_events(settings):
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     # Iniciar sessão
-    res = await client.post("/api/v1/whatsapp/session/start")  # type: ignore[arg-type]
+    res = await sync_to_async(client.post)("/api/v1/whatsapp/session/start")
     assert res.status_code == 202
 
     # Esperar status até ready
@@ -48,7 +49,7 @@ async def test_session_flow_and_message_events(settings):
     assert "ready" in states
 
     # Enviar mensagem
-    res2 = await client.post("/api/v1/whatsapp/messages", {"to": "5599999999999", "type": "text", "text": "Ola"}, format="json")  # type: ignore[arg-type]
+    res2 = await sync_to_async(client.post)("/api/v1/whatsapp/messages", {"to": "5599999999999", "type": "text", "text": "Ola"}, format="json")
     assert res2.status_code == 202
     message_id = res2.data["message_id"]
 
