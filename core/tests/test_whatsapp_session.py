@@ -14,7 +14,6 @@ def make_token(user: Agent) -> str:
 
 @override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
 class WhatsAppSessionTests(TestCase):
-    reset_sequences = True
 
     def test_session_flow_and_message_events(self):
         user = Agent.objects.create_user(username="u1", password="p")
