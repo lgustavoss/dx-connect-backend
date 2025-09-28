@@ -96,6 +96,20 @@
       ]
     },
     {
+      "name": "07 - WhatsApp Sessão",
+      "item": [
+        {"name": "POST /api/v1/whatsapp/session/start", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session/start", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session","start"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('202', ()=> pm.response.to.have.status(202));"]}}]},
+        {"name": "GET /api/v1/whatsapp/session/status", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session/status", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session","status"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));","pm.test('Tem status', ()=> pm.expect(pm.response.json().status).to.be.a('string'));"]}}]},
+        {"name": "DELETE /api/v1/whatsapp/session", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('204', ()=> pm.response.to.have.status(204));"]}}]}
+      ]
+    },
+    {
+      "name": "08 - WhatsApp Mensagens",
+      "item": [
+        {"name": "POST /api/v1/whatsapp/messages (text)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"},{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"to\": \"5599999999999\",\n  \"type\": \"text\",\n  \"text\": \"Olá\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/whatsapp/messages", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","messages"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('202', ()=> pm.response.to.have.status(202));","pm.test('message_id presente', ()=> pm.expect(pm.response.json().message_id).to.be.a('string'));"]}}]}
+      ]
+    },
+    {
       "name": "99 - Negativos",
       "item": [
         {"name": "GET /api/v1/me/ sem auth (401)", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('401', ()=> pm.response.to.have.status(401));"]}}]},
