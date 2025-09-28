@@ -103,6 +103,17 @@ Validação recomendada (frontend-first):
 - Idempotência: requisições que podem ser repetidas devem retornar identificadores estáveis (ex.: `message_id`)
 - Cache: usar cache curto (ex.: 30s) para listas estáveis quando aplicável
 
+## 🔌 WebSocket (Base)
+
+- Servidor: ASGI (Daphne) + Django Channels
+- Autenticação: JWT via query string no handshake
+  - Exemplo de URL (local):
+    - `ws://localhost:8001/ws/echo/?token=<ACCESS_TOKEN>`
+- Ping/Pong:
+  - Envie: `{ "type": "ping" }`
+  - Resposta: `{ "type": "pong" }`
+
+
 ## ❗ Padrão de Erros (simplificado)
 
 Formato base (RFC 7807-like):
