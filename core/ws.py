@@ -14,7 +14,9 @@ User = get_user_model()
 
 class EchoConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        # Para facilitar testes: aceitar sempre e, se não autenticado, responder erro no primeiro receive
+        if not getattr(self.scope, "user", None) or not self.scope["user"].is_authenticated:
+            await self.close(code=4001)
+            return
         await self.accept()
 
     async def receive_json(self, content, **kwargs):

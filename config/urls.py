@@ -14,7 +14,6 @@ from accounts.views import (
     GroupListCreateView,
     PermissionListView,
 )
-from core.views.ws_debug import WsDebugView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -52,8 +51,6 @@ urlpatterns = [
     path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
     path("api/v1/config/whatsapp/", WhatsAppConfigView.as_view()),
     path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
-    # Debug WS token
-    path("api/v1/ws-debug/", WsDebugView.as_view()),
     # AuthZ (v1)
     path("api/v1/authz/permissions/", PermissionListView.as_view()),
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),
