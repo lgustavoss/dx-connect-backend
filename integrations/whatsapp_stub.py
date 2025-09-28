@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import threading
 import base64
 import json
 import uuid
@@ -25,6 +26,7 @@ def user_group_name(user_id: int) -> str:
 class SessionState:
     status: str = "disconnected"
     task: Optional[asyncio.Task] = None
+    timers: list[threading.Timer] = None  # type: ignore[assignment]
 
 
 class StubWhatsAppSessionService:
@@ -42,7 +44,19 @@ class StubWhatsAppSessionService:
         self.channel_layer = get_channel_layer()
 
     async def _emit(self, user_id: int, payload: Dict):
-        await self.channel_layer.group_send(  # type: ignore[func-returns-value]
+        layer = get_channel_layer()
+        if not layer:
+            return
+        await layer.group_send(  # type: ignore[func-returns-value]
+            user_group_name(user_id),
+            {"type": "whatsapp.event", "event": payload},
+        )
+
+    def _emit_sync(self, user_id: int, payload: Dict):
+        layer = get_channel_layer()
+        if not layer:
+            return
+        async_to_sync(layer.group_send)(
             user_group_name(user_id),
             {"type": "whatsapp.event", "event": payload},
         )
@@ -53,42 +67,45 @@ class StubWhatsAppSessionService:
             return {"status": state.status}
 
         state.status = "connecting"
+        state.timers = []
         self._sessions[user_id] = state
         await self._emit(user_id, {"type": "session_status", "status": "connecting", "ts": now_iso()})
 
-        async def run_connect_flow():
-            try:
-                await asyncio.sleep(self.connect_step)
-                # QRCode fictício
-                qr_data = base64.b64encode(b"stub-qr").decode()
-                state.status = "qrcode"
-                await self._emit(user_id, {"type": "session_status", "status": "qrcode", "ts": now_iso()})
-                await self._emit(user_id, {"type": "qrcode", "image_b64": qr_data, "ts": now_iso()})
+        def step_qr():
+            qr_data = base64.b64encode(b"stub-qr").decode()
+            state.status = "qrcode"
+            self._emit_sync(user_id, {"type": "session_status", "status": "qrcode", "ts": now_iso()})
+            self._emit_sync(user_id, {"type": "qrcode", "image_b64": qr_data, "ts": now_iso()})
 
-                await asyncio.sleep(self.connect_step)
-                state.status = "authenticated"
-                await self._emit(user_id, {"type": "session_status", "status": "authenticated", "ts": now_iso()})
+        def step_authenticated():
+            state.status = "authenticated"
+            self._emit_sync(user_id, {"type": "session_status", "status": "authenticated", "ts": now_iso()})
 
-                await asyncio.sleep(self.connect_step)
-                state.status = "ready"
-                await self._emit(user_id, {"type": "session_status", "status": "ready", "ts": now_iso()})
-            except asyncio.CancelledError:
-                # encerrado
-                pass
+        def step_ready():
+            state.status = "ready"
+            self._emit_sync(user_id, {"type": "session_status", "status": "ready", "ts": now_iso()})
 
-        # criar tarefa de conexão
-        loop = asyncio.get_running_loop()
-        state.task = loop.create_task(run_connect_flow())
+        # agendar transições por timers (compatível com contexto síncrono)
+        t1 = threading.Timer(self.connect_step, step_qr)
+        t2 = threading.Timer(self.connect_step * 2, step_authenticated)
+        t3 = threading.Timer(self.connect_step * 3, step_ready)
+        for t in (t1, t2, t3):
+            t.daemon = True
+            t.start()
+        state.timers.extend([t1, t2, t3])
         return {"status": state.status}
 
     async def stop(self, user_id: int) -> None:
         state = self._sessions.get(user_id)
         if not state:
             return
-        if state.task and not state.task.done():
-            state.task.cancel()
-            with contextlib.suppress(Exception):
-                await state.task
+        # cancelar timers
+        for t in list(state.timers or []):
+            try:
+                t.cancel()
+            except Exception:
+                pass
+        state.timers = []
         state.status = "disconnected"
         await self._emit(user_id, {"type": "session_status", "status": "disconnected", "ts": now_iso()})
 
@@ -103,16 +120,9 @@ class StubWhatsAppSessionService:
             raise RuntimeError("session_not_ready")
         message_id = client_message_id or str(uuid.uuid4())
 
-        async def flow():
-            statuses = [
-                ("queued", 0.01),
-                ("sent", 0.05),
-                ("delivered", 0.05),
-                ("read", 0.05),
-            ]
-            for s, delay in statuses:
-                await asyncio.sleep(delay)
-                await self._emit(
+        def schedule_status(s: str, delay: float):
+            def emit():
+                self._emit_sync(
                     user_id,
                     {
                         "type": "message_status",
@@ -121,9 +131,15 @@ class StubWhatsAppSessionService:
                         "ts": now_iso(),
                     },
                 )
+            t = threading.Timer(delay, emit)
+            t.daemon = True
+            t.start()
+            (self._sessions[user_id].timers or []).append(t)
 
-        loop = asyncio.get_running_loop()
-        loop.create_task(flow())
+        schedule_status("queued", 0.0)
+        schedule_status("sent", 0.05)
+        schedule_status("delivered", 0.10)
+        schedule_status("read", 0.15)
         return {"message_id": message_id}
 
     async def inject_incoming(self, user_id: int, from_number: str, payload: Dict) -> Dict:
