@@ -18,7 +18,7 @@ def now_iso() -> str:
 
 
 def user_group_name(user_id: int) -> str:
-    return f"user_{user_id}:whatsapp"
+    return f"user_{user_id}_whatsapp"
 
 
 @dataclass

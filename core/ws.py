@@ -46,7 +46,7 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                 user_id = None
 
         if user_id:
-            self.group_name = f"user_{user_id}:whatsapp"
+            self.group_name = f"user_{user_id}_whatsapp"
             await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
