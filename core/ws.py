@@ -30,8 +30,11 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
 
 class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        if not getattr(self.scope, "user", None) or not self.scope["user"].is_authenticated:
-            # Fallback: tentar autenticar via token no query string
+        # Tenta resolver usuário via middleware ou via token no query string
+        user_id = None
+        if getattr(self.scope, "user", None) and getattr(self.scope["user"], "is_authenticated", False):
+            user_id = self.scope["user"].id
+        else:
             try:
                 query = self.scope.get("query_string", b"").decode()
                 params = parse_qs(query)
@@ -39,17 +42,12 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                 if token:
                     access = AccessToken(token)
                     user_id = access.get("user_id")
-                    if user_id:
-                        user = await sync_to_async(lambda: User.objects.filter(pk=user_id).first())()
-                        if user:
-                            self.scope["user"] = user
             except Exception:
-                pass
-        if not getattr(self.scope, "user", None) or not self.scope["user"].is_authenticated:
-            await self.close(code=4001)
-            return
-        self.group_name = f"user_{self.scope['user'].id}:whatsapp"
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
+                user_id = None
+
+        if user_id:
+            self.group_name = f"user_{user_id}:whatsapp"
+            await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, code):
