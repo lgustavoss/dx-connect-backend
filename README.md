@@ -114,6 +114,59 @@ Validação recomendada (frontend-first):
   - Resposta: `{ "type": "pong" }`
 
 
+## 📲 Sessão WhatsApp (Stub)
+
+- Driver: stub interno para desenvolvimento/CI (sem integração externa)
+- Endpoints REST:
+  - POST `/api/v1/whatsapp/session/start` → 202 { status }
+  - GET `/api/v1/whatsapp/session/status` → 200 { status }
+  - DELETE `/api/v1/whatsapp/session` → 204
+  - POST `/api/v1/whatsapp/messages` → 202 { message_id }
+- WebSocket:
+  - Rota: `ws://localhost:8001/ws/whatsapp/?token=<ACCESS_TOKEN>`
+  - Eventos emitidos:
+    - `session_status` (connecting, qrcode, authenticated, ready, disconnected)
+    - `qrcode` (image_b64)
+    - `message_status` (queued, sent, delivered, read, failed)
+    - `message_received` (payload inbound simulado)
+- Permissões: endpoints protegidos por `core.manage_config_whatsapp`.
+- Variáveis de ambiente úteis:
+  - `WHATSAPP_STUB_FAST=1` (torna transições imediatas em dev/CI)
+
+Exemplo rápido (curl):
+```bash
+# obter token
+ACCESS=$(curl -s -X POST http://localhost:8001/api/v1/auth/token/ -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin"}' | jq -r .access)
+
+# iniciar sessão
+curl -i -X POST http://localhost:8001/api/v1/whatsapp/session/start -H "Authorization: Bearer $ACCESS"
+
+# consultar status
+curl -s http://localhost:8001/api/v1/whatsapp/session/status -H "Authorization: Bearer $ACCESS"
+
+# enviar mensagem
+curl -s -X POST http://localhost:8001/api/v1/whatsapp/messages -H 'Content-Type: application/json' -H "Authorization: Bearer $ACCESS" \
+  -d '{"to":"5599999999999","type":"text","text":"Olá"}'
+```
+
+Teste rápido do WS (wscat):
+```bash
+npx wscat -c "ws://localhost:8001/ws/whatsapp/?token=$ACCESS"
+```
+
+## 🧪 Testes
+
+### Django Test Runner
+```bash
+docker compose exec web python manage.py test core.tests.test_whatsapp_session -v 2
+```
+
+### Newman (Postman) via Docker
+```bash
+# executa pastas 07 e 08 da coleção
+docker compose run --rm newman
+```
+
 ## ❗ Padrão de Erros (simplificado)
 
 Formato base (RFC 7807-like):
