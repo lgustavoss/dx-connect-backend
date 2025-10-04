@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import threading
+import os
 import base64
 import json
 import uuid
@@ -40,7 +41,8 @@ class StubWhatsAppSessionService:
     _sessions: Dict[int, SessionState] = {}
 
     def __init__(self, connect_step_ms: int = 100):
-        self.connect_step = max(0, connect_step_ms) / 1000.0
+        fast = os.getenv("WHATSAPP_STUB_FAST", "0") == "1"
+        self.connect_step = 0.0 if fast else max(0, connect_step_ms) / 1000.0
         self.channel_layer = get_channel_layer()
 
     async def _emit(self, user_id: int, payload: Dict):
