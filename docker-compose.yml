@@ -5,6 +5,8 @@ services:
     command: ["/app/docker/entrypoint.sh"]
     env_file:
       - .env
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*,web"
     ports:
       - "8001:8000"
     depends_on:
