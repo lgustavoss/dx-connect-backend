@@ -11,34 +11,75 @@ API backend para o sistema de gestão e atendimento ao cliente DX Connect.
 - **Authentication:** JWT (Simple JWT)
 - **Container:** Docker
 
-## 🚀 Como Executar (Desenvolvimento)
+## 🚀 Como Executar
 
-1.  Clone o repositório:
-    ```bash
-    git clone https://github.com/seu-usuario/dx-connect-backend.git
-    cd dx-connect-backend
-    ```
+### Desenvolvimento Local
 
-2.  Configure o ambiente:
-    ```bash
-    cp .env.example .env
-    # Edite o arquivo .env com suas configurações
-    ```
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/seu-usuario/dx-connect-backend.git
+   cd dx-connect-backend
+   ```
 
-3.  Inicie os containers:
-    ```bash
-    docker-compose up -d
-    ```
+2. **Configure o ambiente:**
+   ```bash
+   cp .env.example .env
+   # Edite o arquivo .env com suas configurações
+   ```
 
-4.  Execute as migrações:
-    ```bash
-    docker-compose exec web python manage.py migrate
-    ```
+3. **Inicie os containers:**
+   ```bash
+   docker-compose up -d
+   ```
 
-5.  (Opcional) Execute os testes:
-    ```bash
-    docker-compose exec web python manage.py test
-    ```
+4. **Execute as migrações:**
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+5. **Crie um superusuário (opcional):**
+   ```bash
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+6. **Execute os testes:**
+   ```bash
+   docker-compose exec web python manage.py test
+   ```
+
+### Script de Inicialização Rápida
+
+Para facilitar o setup inicial, use o script `docker-run.sh`:
+
+```bash
+# Build e start dos containers
+./docker-run.sh build
+./docker-run.sh start
+
+# Na primeira execução, execute as migrações
+./docker-run.sh migrate
+
+# Crie um superusuário
+./docker-run.sh createsuperuser
+```
+
+### Verificação da Instalação
+
+Após a inicialização, verifique se tudo está funcionando:
+
+```bash
+# Health check
+curl http://localhost:8001/api/v1/health/
+
+# Teste de autenticação
+curl -X POST http://localhost:8001/api/v1/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}'
+```
+
+### Deploy em Produção
+
+Para deploy em produção, consulte a seção [Deploy em Produção](#deploy-em-produção) abaixo.
 
 ## 🧪 Testes
 
@@ -251,3 +292,86 @@ Exemplos de códigos: `INVALID_PAYLOAD`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND
 - Eventos em tempo real: payloads versionados com `version: v1`
 
 Para contratos completos, consulte o schema OpenAPI em `/api/schema/` e os exemplos nos endpoints do Swagger/Redoc.
+
+## 🚀 Deploy em Produção
+
+### Pré-requisitos
+
+- Docker e Docker Compose instalados
+- Domínio configurado (ex: `api.seudominio.com`)
+- Certificado SSL (recomendado: Let's Encrypt)
+- Banco de dados PostgreSQL (pode ser o mesmo container ou externo)
+- Redis (pode ser o mesmo container ou externo)
+
+### Configuração de Produção
+
+1. **Configure as variáveis de ambiente:**
+   ```bash
+   cp .env.example .env.production
+   # Edite .env.production com valores de produção
+   ```
+
+2. **Principais configurações para produção:**
+   ```bash
+   DEBUG=False
+   SECRET_KEY=your-very-secure-secret-key-here
+   ALLOWED_HOSTS=api.seudominio.com,www.seudominio.com
+   DB_PASSWORD=your-secure-database-password
+   EMAIL_HOST_PASSWORD=your-secure-email-password
+   ```
+
+3. **Use o docker-compose de produção:**
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+   ```
+
+### Script de Deploy
+
+```bash
+#!/bin/bash
+# deploy.sh
+
+echo "🚀 Iniciando deploy do DX Connect Backend..."
+
+# Pull das últimas mudanças
+git pull origin main
+
+# Build das imagens
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+
+# Parar containers existentes
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+# Iniciar novos containers
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Executar migrações
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec web python manage.py migrate
+
+# Coletar arquivos estáticos (se necessário)
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput
+
+echo "✅ Deploy concluído!"
+```
+
+### Monitoramento
+
+- **Health Check:** `https://api.seudominio.com/api/v1/health/`
+- **Logs:** `docker-compose logs -f web`
+- **Métricas:** Use ferramentas como Prometheus + Grafana
+
+### Backup
+
+```bash
+# Backup do banco de dados
+docker-compose exec db pg_dump -U dxconnect dxconnect > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup dos arquivos de mídia
+tar -czf media_backup_$(date +%Y%m%d_%H%M%S).tar.gz media/
+```
+
+### Troubleshooting
+
+- **Container não inicia:** Verifique logs com `docker-compose logs web`
+- **Erro de migração:** Execute `docker-compose exec web python manage.py migrate --fake-initial`
+- **Problemas de permissão:** Verifique ownership dos arquivos com `ls -la`

@@ -1,14 +1,15 @@
 {
   "info": {
-    "name": "DX Connect API",
+    "name": "DX Connect API - Complete",
+    "description": "Coleção completa da API DX Connect com todos os endpoints implementados",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-      "event": [
-        {
+  "event": [
+    {
       "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
+      "script": {
+        "type": "text/javascript",
+        "exec": [
           "if (!pm.environment.get('access')) {",
           "  pm.sendRequest({",
           "    url: pm.environment.get('base_url') + '/api/v1/auth/token/',",
@@ -29,96 +30,1019 @@
   ],
   "item": [
     {
-      "name": "00 - Health",
+      "name": "00 - Health Check",
       "item": [
-        {"name": "GET /api/v1/health/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/v1/health/", "host": ["{{base_url}}"], "path": ["api","v1","health",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });","pm.test('Body has status ok', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"]}}]}
+        {
+          "name": "GET /api/v1/health/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Body has status ok', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"
+                ]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "01 - Auth",
+      "name": "01 - Authentication",
       "item": [
-        {"name": "POST /api/v1/auth/token/", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/auth/token/", "host": ["{{base_url}}"], "path": ["api","v1","auth","token",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.environment.set('access', json.access);","pm.environment.set('refresh', json.refresh);","pm.test('Tokens presentes', () => { pm.expect(json.access).to.be.a('string'); pm.expect(json.refresh).to.be.a('string'); });"]}}]},
-        {"name": "POST /api/v1/auth/refresh/", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/auth/refresh/", "host": ["{{base_url}}"], "path": ["api","v1","auth","refresh",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.environment.set('access', json.access);","pm.test('Access presente', () => { pm.expect(json.access).to.be.a('string'); });"]}}]}
+        {
+          "name": "POST /api/v1/auth/token/",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/token/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "token", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('access', json.access);",
+                  "pm.environment.set('refresh', json.refresh);",
+                  "pm.test('Tokens presentes', () => { pm.expect(json.access).to.be.a('string'); pm.expect(json.refresh).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/auth/refresh/",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('access', json.access);",
+                  "pm.test('Access presente', () => { pm.expect(json.access).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "02 - Me",
+      "name": "02 - User Profile",
       "item": [
-        {"name": "GET /api/v1/me/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const json = pm.response.json();","pm.test('Tem username', () => pm.expect(json.username).to.be.a('string'));"]}}]}
+        {
+          "name": "GET /api/v1/me/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "me", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Tem username', () => pm.expect(json.username).to.be.a('string'));",
+                  "pm.collectionVariables.set('agent_id', json.id);"
+                ]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "03 - Config",
+      "name": "03 - Configuration",
       "item": [
-        {"name": "GET /api/v1/config/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/", "host": ["{{base_url}}"], "path": ["api","v1","config",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/config/company/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/company/ (válido)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"razao_social\": \"Empresa X LTDA\",\n  \"nome_fantasia\": \"Empresa X\",\n  \"cnpj\": \"00000000000191\",\n  \"inscricao_estadual\": \"ISENTO\",\n  \"regime_tributario\": \"1\",\n  \"telefone\": \"11999999999\",\n  \"email\": \"contato@empresa.com\",\n  \"endereco\": {\n    \"cep\": \"01001000\",\n    \"logradouro\": \"Rua Exemplo\",\n    \"numero\": \"100\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"uf\": \"SP\"\n  }\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/company/", "host": ["{{base_url}}"], "path": ["api","v1","config","company",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/config/chat/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/chat/ (mensagem_saudacao)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"mensagem_saudacao\": \"Olá!\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/chat/", "host": ["{{base_url}}"], "path": ["api","v1","config","chat",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/config/email/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/email/ (smtp_host)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"smtp_host\": \"smtp.mailtrap.io\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/email/", "host": ["{{base_url}}"], "path": ["api","v1","config","email",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/config/appearance/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/appearance/ (primary_color)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"primary_color\": \"#2563eb\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+        {
+          "name": "GET /api/v1/config/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/config/",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_data\": {\n    \"razao_social\": \"Empresa Teste LTDA\",\n    \"nome_fantasia\": \"Empresa Teste\",\n    \"cnpj\": \"11222333000181\",\n    \"inscricao_estadual\": \"123456789\",\n    \"regime_tributario\": \"1\",\n    \"telefone\": \"(11) 99999-9999\",\n    \"email\": \"contato@empresateste.com\",\n    \"endereco\": {\n      \"cep\": \"01234567\",\n      \"logradouro\": \"Rua Teste\",\n      \"numero\": \"123\",\n      \"bairro\": \"Centro\",\n      \"cidade\": \"São Paulo\",\n      \"uf\": \"SP\"\n    }\n  },\n  \"chat_settings\": {\n    \"mensagem_saudacao\": \"Olá! Como posso ajudar?\",\n    \"mensagem_fora_expediente\": \"Estamos fora do expediente.\",\n    \"timeout_inatividade_minutos\": 30,\n    \"limite_chats_simultaneos\": 5\n  },\n  \"email_settings\": {\n    \"smtp_host\": \"smtp.gmail.com\",\n    \"smtp_port\": 587,\n    \"smtp_usuario\": \"test@example.com\",\n    \"smtp_ssl\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "04 - WhatsApp",
+      "name": "04 - Company Configuration",
       "item": [
-        {"name": "GET /api/v1/config/whatsapp/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/whatsapp/ (enable)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"enabled\": true\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/config/whatsapp/ (session/proxy)", "request": {"method": "PATCH", "header": [{"key": "Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{access}}"}], "body": {"mode":"raw","raw":"{\n  \"session_data\": \"...\",\n  \"proxy_url\": \"http://user:pass@ip:port\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/config/whatsapp/", "host": ["{{base_url}}"], "path": ["api","v1","config","whatsapp",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+        {
+          "name": "GET /api/v1/config/company/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/company/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "company", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/company/ (valid)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razao_social\": \"Empresa X LTDA\",\n  \"nome_fantasia\": \"Empresa X\",\n  \"cnpj\": \"00000000000191\",\n  \"inscricao_estadual\": \"ISENTO\",\n  \"regime_tributario\": \"1\",\n  \"telefone\": \"11999999999\",\n  \"email\": \"contato@empresa.com\",\n  \"endereco\": {\n    \"cep\": \"01001000\",\n    \"logradouro\": \"Rua Exemplo\",\n    \"numero\": \"100\",\n    \"bairro\": \"Centro\",\n    \"cidade\": \"São Paulo\",\n    \"uf\": \"SP\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/company/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "company", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "04 - Upload",
+      "name": "05 - Chat Configuration",
       "item": [
-        {"name": "POST /api/v1/config/appearance/upload/ (logo)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "body": {"mode": "formdata", "formdata": [{"key":"kind","value":"logo","type":"text"},{"key":"file","type":"file","src":["{{upload_file}}"]}]}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "DELETE /api/v1/config/appearance/upload/?kind=logo", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/?kind=logo", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""], "query": [{"key":"kind","value":"logo"}]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('204', ()=> pm.response.to.have.status(204));"]}}]}
+        {
+          "name": "GET /api/v1/config/chat/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/chat/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "chat", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/chat/ (mensagem_saudacao)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mensagem_saudacao\": \"Olá! Como posso ajudar você hoje?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/chat/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "chat", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "05 - Docs",
+      "name": "06 - Email Configuration",
       "item": [
-        {"name": "GET /api/schema/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/schema/", "host": ["{{base_url}}"], "path": ["api","schema",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/docs/", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/docs/", "host": ["{{base_url}}"], "path": ["api","docs",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+        {
+          "name": "GET /api/v1/config/email/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/email/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "email", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/email/ (smtp_host)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"smtp_host\": \"smtp.mailtrap.io\",\n  \"smtp_port\": 587,\n  \"smtp_usuario\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/email/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "email", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "06 - AuthZ",
+      "name": "07 - Appearance Configuration",
       "item": [
-        {"name": "SET agent_id (me)", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen":"test","script":{"type":"text/javascript","exec":["const j = pm.response.json();","pm.collectionVariables.set('agent_id', j.id);","pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/authz/permissions/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/authz/permissions/", "host": ["{{base_url}}"], "path": ["api","v1","authz","permissions",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/authz/groups/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/authz/groups/", "host": ["{{base_url}}"], "path": ["api","v1","authz","groups",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "POST /api/v1/authz/groups/", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"},{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"name\": \"Equipe X\",\n  \"permissions\": []\n}"}, "url": {"raw": "{{base_url}}/api/v1/authz/groups/", "host": ["{{base_url}}"], "path": ["api","v1","authz","groups",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('201', ()=> pm.response.to.have.status(201));","const j=pm.response.json();","pm.collectionVariables.set('group_id', j.id);"]}}]},
-        {"name": "PATCH /api/v1/authz/groups/{id}/", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{access}}"},{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"name\": \"Equipe X 2\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/authz/groups/{{group_id}}/", "host": ["{{base_url}}"], "path": ["api","v1","authz","groups","{{group_id}}",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "GET /api/v1/authz/agents/{id}/groups/", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/authz/agents/{{agent_id}}/groups/", "host": ["{{base_url}}"], "path": ["api","v1","authz","agents","{{agent_id}}","groups",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]},
-        {"name": "PATCH /api/v1/authz/agents/{id}/groups/", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{access}}"},{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"group_ids\": [{{group_id}}]\n}"}, "url": {"raw": "{{base_url}}/api/v1/authz/agents/{{agent_id}}/groups/", "host": ["{{base_url}}"], "path": ["api","v1","authz","agents","{{agent_id}}","groups",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));"]}}]}
+        {
+          "name": "GET /api/v1/config/appearance/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/appearance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "appearance", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/appearance/ (primary_color)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"primary_color\": \"#2563eb\",\n  \"secondary_color\": \"#64748b\",\n  \"logo_url\": \"https://example.com/logo.png\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/appearance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "appearance", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "07 - WhatsApp Sessão",
+      "name": "08 - WhatsApp Configuration",
       "item": [
-        {"name": "POST /api/v1/whatsapp/session/start", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session/start", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session","start"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('202', ()=> pm.response.to.have.status(202));"]}}]},
-        {"name": "GET /api/v1/whatsapp/session/status", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session/status", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session","status"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('200', ()=> pm.response.to.have.status(200));","pm.test('Tem status', ()=> pm.expect(pm.response.json().status).to.be.a('string'));"]}}]}
+        {
+          "name": "GET /api/v1/config/whatsapp/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/whatsapp/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "whatsapp", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/whatsapp/ (enable)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/whatsapp/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "whatsapp", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/config/whatsapp/ (session/proxy)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_data\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\",\n  \"proxy_url\": \"http://user:pass@proxy.example.com:8080\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/whatsapp/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "whatsapp", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "08 - WhatsApp Mensagens",
+      "name": "09 - File Upload",
       "item": [
-        {"name": "POST /api/v1/whatsapp/messages (text)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"},{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"to\": \"5599999999999\",\n  \"type\": \"text\",\n  \"text\": \"Olá\"\n}"}, "url": {"raw": "{{base_url}}/api/v1/whatsapp/messages", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","messages"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('202', ()=> pm.response.to.have.status(202));","pm.test('message_id presente', ()=> pm.expect(pm.response.json().message_id).to.be.a('string'));"]}}]}
+        {
+          "name": "POST /api/v1/config/appearance/upload/ (logo)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "kind", "value": "logo", "type": "text"},
+                {"key": "file", "type": "file", "src": ["{{upload_file}}"]}
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/appearance/upload/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "appearance", "upload", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/config/appearance/upload/?kind=logo",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/appearance/upload/?kind=logo",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "appearance", "upload", ""],
+              "query": [{"key": "kind", "value": "logo"}]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "09 - WhatsApp Cleanup",
+      "name": "10 - Authorization (AuthZ)",
       "item": [
-        {"name": "DELETE /api/v1/whatsapp/session", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "url": {"raw": "{{base_url}}/api/v1/whatsapp/session", "host": ["{{base_url}}"], "path": ["api","v1","whatsapp","session"]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('204', ()=> pm.response.to.have.status(204));"]}}]}
+        {
+          "name": "GET /api/v1/authz/permissions/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/permissions/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "permissions", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/authz/groups/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/groups/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "groups", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/authz/groups/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Atendimento\",\n  \"permissions\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/groups/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "groups", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('group_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/authz/groups/{id}/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/groups/{{group_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "groups", "{{group_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/authz/groups/{id}/",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Atendimento Atualizada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/groups/{{group_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "groups", "{{group_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/authz/groups/{id}/",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/groups/{{group_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "groups", "{{group_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/authz/agents/{id}/groups/",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/agents/{{agent_id}}/groups/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "agents", "{{agent_id}}", "groups", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/authz/agents/{id}/groups/",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"group_ids\": [{{group_id}}]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/authz/agents/{{agent_id}}/groups/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authz", "agents", "{{agent_id}}", "groups", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
       ]
     },
     {
-      "name": "99 - Negativos",
+      "name": "11 - WhatsApp Session",
       "item": [
-        {"name": "GET /api/v1/me/ sem auth (401)", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/api/v1/me/", "host": ["{{base_url}}"], "path": ["api","v1","me",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('401', ()=> pm.response.to.have.status(401));"]}}]},
-        {"name": "POST upload sem file/kind (400)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{access}}"}], "body": {"mode": "formdata", "formdata": []}, "url": {"raw": "{{base_url}}/api/v1/config/appearance/upload/", "host": ["{{base_url}}"], "path": ["api","v1","config","appearance","upload",""]}}, "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('400', ()=> pm.response.to.have.status(400));"]}}]}
+        {
+          "name": "POST /api/v1/whatsapp/session/start",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/session/start",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whatsapp", "session", "start"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('202', () => pm.response.to.have.status(202));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/whatsapp/session/status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/session/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whatsapp", "session", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tem status', () => pm.expect(pm.response.json().status).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/whatsapp/session",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whatsapp", "session"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12 - WhatsApp Messages",
+      "item": [
+        {
+          "name": "POST /api/v1/whatsapp/messages (text)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"5599999999999\",\n  \"type\": \"text\",\n  \"text\": \"Olá! Esta é uma mensagem de teste.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whatsapp", "messages"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202', () => pm.response.to.have.status(202));",
+                  "pm.test('message_id presente', () => pm.expect(pm.response.json().message_id).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/whatsapp/messages (image)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"5599999999999\",\n  \"type\": \"image\",\n  \"image_url\": \"https://example.com/image.jpg\",\n  \"caption\": \"Imagem de teste\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/whatsapp/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whatsapp", "messages"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202', () => pm.response.to.have.status(202));",
+                  "pm.test('message_id presente', () => pm.expect(pm.response.json().message_id).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13 - API Documentation",
+      "item": [
+        {
+          "name": "GET /api/schema/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/docs/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "docs", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/redoc/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/redoc/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "redoc", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99 - Error Tests",
+      "item": [
+        {
+          "name": "GET /api/v1/me/ sem auth (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "me", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('401', () => pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST upload sem file/kind (400)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/appearance/upload/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "appearance", "upload", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH config com dados inválidos (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"invalid_cnpj\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/config/company/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "config", "company", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        }
       ]
     }
   ]

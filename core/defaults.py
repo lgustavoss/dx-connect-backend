@@ -10,7 +10,7 @@ DEFAULT_COMPANY_DATA = {
     "email": "",
     "site": "",
     "endereco": {
-        "cep": "",
+        "cep": "01234567",
         "logradouro": "",
         "numero": "",
         "complemento": "",
