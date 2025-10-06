@@ -81,9 +81,14 @@ Os testes estão organizados por app:
 
 ### Cobertura Atual
 
+- **Total:** 59.04%
 - **Models:** 100% (Agent), 39% (Config)
 - **Views/APIs:** 100% (accounts), 38% (core config), 51% (WhatsApp)
-- **Cobertura Total:** ~51%
+- **Utils:** 17% (core/utils.py)
+- **Validators:** 21% (core/validators.py)
+- **Crypto:** 33% (core/crypto.py)
+- **WebSocket:** 0% (core/ws.py)
+- **Integrations:** 98% (whatsapp_stub.py)
 
 ### Metas de Cobertura
 
