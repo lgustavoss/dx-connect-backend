@@ -2,7 +2,11 @@
 source = .
 omit = 
     */migrations/*
+    */venv/*
+    */env/*
+    */__pycache__/*
     */tests/*
+    */test_*
     */admin.py
     */apps.py
     */wsgi.py
@@ -12,13 +16,32 @@ omit =
     */__init__.py
     manage.py
     docker/*
+    scripts/*
+    .git/*
+    .github/*
     integrations/whatsapp_stub.py
 
 [report]
 exclude_lines =
     pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
     if TYPE_CHECKING:
     if __name__ == "__main__":
+    raise AssertionError
     raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
     pass
     ...
+
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = htmlcov
+title = DX Connect Backend Coverage Report

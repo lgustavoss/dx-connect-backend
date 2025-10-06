@@ -4,12 +4,12 @@
     "description": "Coleção completa da API DX Connect com todos os endpoints implementados",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "event": [
-    {
+      "event": [
+        {
       "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
+          "script": {
+            "type": "text/javascript",
+            "exec": [
           "if (!pm.environment.get('access')) {",
           "  pm.sendRequest({",
           "    url: pm.environment.get('base_url') + '/api/v1/auth/token/',",

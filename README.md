@@ -137,6 +137,67 @@ Os testes estão organizados por app:
 - **APIs:** ≥80%
 - **Total:** ≥85%
 
+5.  (Opcional) Execute os testes:
+    ```bash
+    docker-compose exec web python manage.py test
+    ```
+
+## 🧪 Testes
+
+### Executar Testes
+
+```bash
+# Executar todos os testes
+docker-compose exec web python manage.py test
+
+# Executar testes de um app específico
+docker-compose exec web python manage.py test accounts
+
+# Executar testes com verbose
+docker-compose exec web python manage.py test -v 2
+```
+
+### Cobertura de Código
+
+```bash
+# Executar testes com cobertura
+docker-compose exec web python -m coverage run --source='.' manage.py test
+
+# Ver relatório de cobertura no terminal
+docker-compose exec web python -m coverage report
+
+# Gerar relatório HTML
+docker-compose exec web python -m coverage html
+
+# Abrir relatório HTML (após gerar)
+open htmlcov/index.html  # macOS
+start htmlcov/index.html  # Windows
+```
+
+### Estrutura dos Testes
+
+Os testes estão organizados por app:
+
+- `accounts/tests/` - Testes do modelo Agent e views de autenticação/autorização
+- `core/tests/` - Testes do modelo Config, views de configuração e WhatsApp
+
+### Cobertura Atual
+
+- **Total:** 59.04%
+- **Models:** 100% (Agent), 39% (Config)
+- **Views/APIs:** 100% (accounts), 38% (core config), 51% (WhatsApp)
+- **Utils:** 17% (core/utils.py)
+- **Validators:** 21% (core/validators.py)
+- **Crypto:** 33% (core/crypto.py)
+- **WebSocket:** 0% (core/ws.py)
+- **Integrations:** 98% (whatsapp_stub.py)
+
+### Metas de Cobertura
+
+- **Models:** ≥90%
+- **APIs:** ≥80%
+- **Total:** ≥85%
+
 ## 📋 Endpoints da API
 
 ### Base
