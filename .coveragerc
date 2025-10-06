@@ -7,14 +7,19 @@ omit =
     */__pycache__/*
     */tests/*
     */test_*
+    */admin.py
+    */apps.py
+    */wsgi.py
+    */asgi.py
+    */celery.py
+    */settings/*
+    */__init__.py
     manage.py
-    config/settings/*
-    config/wsgi.py
-    config/asgi.py
     docker/*
     scripts/*
     .git/*
     .github/*
+    integrations/whatsapp_stub.py
 
 [report]
 exclude_lines =
@@ -22,12 +27,16 @@ exclude_lines =
     def __repr__
     if self.debug:
     if settings.DEBUG
+    if TYPE_CHECKING:
+    if __name__ == "__main__":
     raise AssertionError
     raise NotImplementedError
     if 0:
     if __name__ == .__main__.:
     class .*\bProtocol\):
     @(abc\.)?abstractmethod
+    pass
+    ...
 
 show_missing = True
 skip_covered = False
