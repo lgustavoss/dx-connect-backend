@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -43,7 +44,7 @@ class GroupDetailView(APIView):
     permission_classes = [IsAuthenticated, CanManageAuth]
 
     def get_object(self, pk: int) -> Group:
-        return Group.objects.get(pk=pk)
+        return get_object_or_404(Group, pk=pk)
 
     def get(self, _request, pk: int):
         group = self.get_object(pk)
@@ -70,12 +71,12 @@ class AgentGroupsView(APIView):
     permission_classes = [IsAuthenticated, CanManageAuth]
 
     def get(self, _request, agent_id: int):
-        user = User.objects.get(pk=agent_id)
+        user = get_object_or_404(User, pk=agent_id)
         groups = user.groups.all().order_by("name")
         return Response(GroupSerializer(groups, many=True).data)
 
     def patch(self, request, agent_id: int):
-        user = User.objects.get(pk=agent_id)
+        user = get_object_or_404(User, pk=agent_id)
         serializer = AgentGroupsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ids = serializer.validated_data["group_ids"]
