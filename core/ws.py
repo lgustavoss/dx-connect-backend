@@ -7,6 +7,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import sync_to_async
+from channels.layers import get_channel_layer
+from urllib.parse import parse_qs
 
 
 User = get_user_model()
@@ -24,6 +26,43 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"type": "pong"})
             return
         await self.send_json({"echo": content})
+
+
+class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        # Tenta resolver usuário via middleware ou via token no query string
+        user_id = None
+        if getattr(self.scope, "user", None) and getattr(self.scope["user"], "is_authenticated", False):
+            user_id = self.scope["user"].id
+        else:
+            try:
+                query = self.scope.get("query_string", b"").decode()
+                params = parse_qs(query)
+                token = (params.get("token") or [None])[0]
+                if token:
+                    access = AccessToken(token)
+                    user_id = access.get("user_id")
+            except Exception:
+                user_id = None
+
+        if user_id:
+            self.group_name = f"user_{user_id}_whatsapp"
+            await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, code):
+        if hasattr(self, "group_name"):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive_json(self, content, **kwargs):
+        # Somente eco opcional para debug
+        if content == {"type": "ping"}:
+            await self.send_json({"type": "pong"})
+
+    async def whatsapp_event(self, event):
+        # Encaminha payload já padronizado
+        payload = event.get("event") or {}
+        await self.send_json(payload)
 
 
 def jwt_auth_middleware(inner):

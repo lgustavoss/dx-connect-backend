@@ -5,6 +5,9 @@ services:
     command: ["/app/docker/entrypoint.sh"]
     env_file:
       - .env
+    environment:
+      DJANGO_ALLOWED_HOSTS: "*,web"
+      WHATSAPP_STUB_FAST: "1"
     ports:
       - "8001:8000"
     depends_on:
@@ -72,6 +75,17 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
+
+  newman:
+    image: postman/newman:alpine
+    container_name: dxconnect_newman
+    working_dir: /etc/newman
+    volumes:
+      - ./.postman:/etc/newman
+    entrypoint: ["newman"]
+    command: ["run", "DX Connect API.postman_collection.json", "-e", "DX Connect Local.postman_environment.json", "--env-var", "base_url=http://web:8000", "--folder", "07 - WhatsApp Sessão", "--folder", "08 - WhatsApp Mensagens", "--timeout-request", "60000"]
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
