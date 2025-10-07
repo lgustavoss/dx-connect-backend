@@ -967,6 +967,312 @@
       ]
     },
     {
+      "name": "14 - Clientes",
+      "item": [
+        {
+          "name": "GET /api/v1/clientes/ - Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has results', () => pm.expect(pm.response.json()).to.have.property('results'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/clientes/ - Criar cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva\",\n  \"tipo_documento\": \"cpf\",\n  \"documento\": \"11144477735\",\n  \"email\": \"joao@test.com\",\n  \"telefone\": \"11999999999\",\n  \"celular\": \"11888888888\",\n  \"whatsapp\": \"11777777777\",\n  \"endereco\": \"Rua das Flores, 123\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"cep\": \"01234567\",\n  \"status\": \"ativo\",\n  \"observacoes\": \"Cliente VIP\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response has id', () => pm.expect(pm.response.json()).to.have.property('id'));",
+                  "pm.test('Set cliente_id', () => pm.environment.set('cliente_id', pm.response.json().id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/clientes/{id}/ - Detalhar cliente",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has nome', () => pm.expect(pm.response.json()).to.have.property('nome'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/clientes/{id}/ - Atualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva Atualizado\",\n  \"tipo_documento\": \"cpf\",\n  \"documento\": \"11144477735\",\n  \"email\": \"joao.atualizado@test.com\",\n  \"telefone\": \"11999999999\",\n  \"celular\": \"11888888888\",\n  \"whatsapp\": \"11777777777\",\n  \"endereco\": \"Rua das Flores, 456\",\n  \"cidade\": \"São Paulo\",\n  \"estado\": \"SP\",\n  \"cep\": \"01234567\",\n  \"status\": \"ativo\",\n  \"observacoes\": \"Cliente VIP Atualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Nome atualizado', () => pm.expect(pm.response.json().nome).to.eql('João Silva Atualizado'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/clientes/{id}/ - Atualizar parcial",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva Parcial\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Nome atualizado parcialmente', () => pm.expect(pm.response.json().nome).to.eql('João Silva Parcial'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/clientes/search/ - Buscar clientes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/search/?q=João",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "search", ""],
+              "query": [{"key": "q", "value": "João"}]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has results', () => pm.expect(pm.response.json()).to.have.property('results'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/clientes/status/ativo/ - Listar por status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/status/ativo/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "status", "ativo", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has results', () => pm.expect(pm.response.json()).to.have.property('results'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/clientes/{id}/status/ - Atualizar status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inativo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/status/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", "status", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado', () => pm.expect(pm.response.json().status).to.eql('inativo'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/v1/clientes/{id}/responsavel/ - Atualizar responsável",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agente_responsavel\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/responsavel/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", "responsavel", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Responsável removido', () => pm.expect(pm.response.json().agente_responsavel).to.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/clientes/stats/ - Estatísticas",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/stats/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "stats", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has total', () => pm.expect(pm.response.json()).to.have.property('total'));",
+                  "pm.test('Response has por_status', () => pm.expect(pm.response.json()).to.have.property('por_status'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/clientes/{id}/ - Deletar cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{access}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clientes", "{{cliente_id}}", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "99 - Error Tests",
       "item": [
         {

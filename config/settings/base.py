@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # Local
     "accounts",
     "core",
+    "clientes",
     "integrations",
 ]
 

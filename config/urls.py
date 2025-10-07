@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -20,6 +20,7 @@ from accounts.views import (
     GroupListCreateView,
     PermissionListView,
 )
+from clientes.urls import urlpatterns as clientes_urls
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -67,6 +68,8 @@ urlpatterns = [
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),
     path("api/v1/authz/groups/<int:pk>/", GroupDetailView.as_view()),
     path("api/v1/authz/agents/<int:agent_id>/groups/", AgentGroupsView.as_view()),
+    # Clientes (v1)
+    path("api/v1/", include(clientes_urls)),
     # Docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
