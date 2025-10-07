@@ -819,11 +819,14 @@ class DocumentoCliente(models.Model):
     @property
     def tamanho_arquivo(self):
         """Retorna o tamanho do arquivo em formato legível"""
-        if self.arquivo:
-            size = self.arquivo.size
-            for unit in ['B', 'KB', 'MB', 'GB']:
-                if size < 1024.0:
-                    return f"{size:.1f} {unit}"
-                size /= 1024.0
-            return f"{size:.1f} TB"
+        if self.arquivo and self.arquivo.name:
+            try:
+                size = self.arquivo.size
+                for unit in ['B', 'KB', 'MB', 'GB']:
+                    if size < 1024.0:
+                        return f"{size:.1f} {unit}"
+                    size /= 1024.0
+                return f"{size:.1f} TB"
+            except (OSError, FileNotFoundError):
+                return "Arquivo não encontrado"
         return "0 B"
