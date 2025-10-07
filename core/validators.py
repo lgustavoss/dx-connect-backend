@@ -110,3 +110,46 @@ def validate_whatsapp_settings(data: Dict[str, Any]) -> None:
     # validações simples
     if int(data.get("reconnect_backoff_seconds", 0)) < 0:
         raise ValidationError({"whatsapp_settings.reconnect_backoff_seconds": "Deve ser >= 0"})
+
+
+def validate_document_templates(data: Dict[str, Any]) -> None:
+    """Valida templates de documentos"""
+    if not isinstance(data, dict):
+        raise ValidationError({"document_templates": "Deve ser um objeto"})
+    
+    # Validação básica da estrutura
+    for template_name, template_data in data.items():
+        if not isinstance(template_data, dict):
+            raise ValidationError({
+                f"document_templates.{template_name}": "Template deve ser um objeto"
+            })
+        
+        # Campos obrigatórios para cada template
+        required_fields = ["nome", "tipo", "conteudo"]
+        for field in required_fields:
+            if field not in template_data:
+                raise ValidationError({
+                    f"document_templates.{template_name}.{field}": "Campo obrigatório ausente"
+                })
+        
+        # Validação do tipo
+        tipos_validos = ["contrato", "boleto", "proposta", "certificado"]
+        if template_data.get("tipo") not in tipos_validos:
+            raise ValidationError({
+                f"document_templates.{template_name}.tipo": f"Tipo deve ser um dos seguintes: {', '.join(tipos_validos)}"
+            })
+        
+        # Validação do conteúdo (deve ter variáveis)
+        conteudo = template_data.get("conteudo", "")
+        if not isinstance(conteudo, str) or len(conteudo.strip()) == 0:
+            raise ValidationError({
+                f"document_templates.{template_name}.conteudo": "Conteúdo do template é obrigatório"
+            })
+        
+        # Validação de variáveis obrigatórias
+        variaveis_obrigatorias = ["{{cliente_nome}}", "{{empresa_nome}}"]
+        for variavel in variaveis_obrigatorias:
+            if variavel not in conteudo:
+                raise ValidationError({
+                    f"document_templates.{template_name}.conteudo": f"Template deve conter a variável {variavel}"
+                })

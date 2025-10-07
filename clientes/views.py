@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from .models import Cliente, ContatoCliente, GrupoEmpresa
+from .models import Cliente, ContatoCliente, GrupoEmpresa, DocumentoCliente
 from .serializers import (
     ClienteSerializer,
     ClienteListSerializer,
@@ -16,9 +16,11 @@ from .serializers import (
     DadosCapturadosChatSerializer,
     CadastroManualContatoSerializer,
     BuscaContatoSerializer,
-    GrupoEmpresaSerializer
+    GrupoEmpresaSerializer,
+    DocumentoClienteSerializer,
+    DocumentoClienteListSerializer
 )
-from .filters import ClienteFilter, ContatoClienteFilter
+from .filters import ClienteFilter, ContatoClienteFilter, DocumentoClienteFilter
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -395,3 +397,253 @@ class GrupoEmpresaViewSet(viewsets.ModelViewSet):
     search_fields = ['nome', 'descricao']
     ordering_fields = ['nome', 'criado_em']
     ordering = ['nome']
+
+
+class DocumentoClienteViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gerenciar documentos de clientes.
+    
+    Endpoints disponíveis:
+    - GET /api/v1/documentos/ - Listar documentos
+    - POST /api/v1/documentos/ - Criar documento
+    - GET /api/v1/documentos/{id}/ - Detalhar documento
+    - PUT /api/v1/documentos/{id}/ - Atualizar documento
+    - PATCH /api/v1/documentos/{id}/ - Atualizar parcialmente documento
+    - DELETE /api/v1/documentos/{id}/ - Remover documento (soft delete)
+    - POST /api/v1/documentos/gerar-contrato/ - Gerar contrato automaticamente
+    - POST /api/v1/documentos/gerar-boleto/ - Gerar boleto automaticamente
+    """
+    
+    queryset = DocumentoCliente.objects.filter(ativo=True)
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = DocumentoClienteFilter
+    search_fields = ['nome', 'descricao', 'template_usado']
+    ordering_fields = ['nome', 'data_upload', 'data_vencimento', 'status']
+    ordering = ['-data_upload']
+    
+    def get_serializer_class(self):
+        """Retorna serializer apropriado baseado na ação"""
+        if self.action == 'list':
+            return DocumentoClienteListSerializer
+        return DocumentoClienteSerializer
+    
+    def get_queryset(self):
+        """Filtra documentos por usuário (não superuser vê apenas os próprios)"""
+        queryset = super().get_queryset()
+        if not self.request.user.is_superuser:
+            # Filtrar apenas documentos de clientes criados pelo usuário atual
+            queryset = queryset.filter(cliente__criado_por=self.request.user)
+        return queryset
+    
+    def perform_create(self, serializer):
+        """Define o usuário que fez o upload"""
+        serializer.save(usuario_upload=self.request.user)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Implementa soft delete marcando documento como inativo"""
+        instance = self.get_object()
+        instance.ativo = False
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @action(detail=False, methods=['post'], url_path='gerar-contrato')
+    def gerar_contrato(self, request):
+        """
+        Gera um contrato automaticamente usando template.
+        
+        POST /api/v1/documentos/gerar-contrato/
+        """
+        from core.models import Config
+        from core.defaults import DEFAULT_DOCUMENT_TEMPLATES
+        
+        # Dados obrigatórios
+        cliente_id = request.data.get('cliente_id')
+        template_nome = request.data.get('template_nome', 'contrato_padrao')
+        dados_contrato = request.data.get('dados_contrato', {})
+        
+        if not cliente_id:
+            return Response({
+                'error': 'cliente_id é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            cliente = get_object_or_404(Cliente, id=cliente_id, ativo=True)
+        except:
+            return Response({
+                'error': 'Cliente não encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Buscar configurações e templates
+        try:
+            config = Config.objects.first()
+            if config and config.document_templates:
+                templates = config.document_templates
+            else:
+                templates = DEFAULT_DOCUMENT_TEMPLATES
+            
+            template = templates.get(template_nome)
+            if not template:
+                return Response({
+                    'error': f'Template "{template_nome}" não encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Erro ao buscar templates: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Gerar documento
+        try:
+            documento = self._gerar_documento_automatico(
+                cliente=cliente,
+                template=template,
+                tipo='contrato',
+                dados_extra=dados_contrato,
+                usuario=request.user
+            )
+            
+            serializer = DocumentoClienteSerializer(documento)
+            return Response({
+                'message': 'Contrato gerado com sucesso',
+                'documento': serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Erro ao gerar contrato: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['post'], url_path='gerar-boleto')
+    def gerar_boleto(self, request):
+        """
+        Gera um boleto automaticamente usando template.
+        
+        POST /api/v1/documentos/gerar-boleto/
+        """
+        from core.models import Config
+        from core.defaults import DEFAULT_DOCUMENT_TEMPLATES
+        
+        # Dados obrigatórios
+        cliente_id = request.data.get('cliente_id')
+        template_nome = request.data.get('template_nome', 'boleto_padrao')
+        dados_boleto = request.data.get('dados_boleto', {})
+        
+        if not cliente_id:
+            return Response({
+                'error': 'cliente_id é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            cliente = get_object_or_404(Cliente, id=cliente_id, ativo=True)
+        except:
+            return Response({
+                'error': 'Cliente não encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Buscar configurações e templates
+        try:
+            config = Config.objects.first()
+            if config and config.document_templates:
+                templates = config.document_templates
+            else:
+                templates = DEFAULT_DOCUMENT_TEMPLATES
+            
+            template = templates.get(template_nome)
+            if not template:
+                return Response({
+                    'error': f'Template "{template_nome}" não encontrado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Erro ao buscar templates: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Gerar documento
+        try:
+            documento = self._gerar_documento_automatico(
+                cliente=cliente,
+                template=template,
+                tipo='boleto',
+                dados_extra=dados_boleto,
+                usuario=request.user
+            )
+            
+            serializer = DocumentoClienteSerializer(documento)
+            return Response({
+                'message': 'Boleto gerado com sucesso',
+                'documento': serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Erro ao gerar boleto: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _gerar_documento_automatico(self, cliente, template, tipo, dados_extra, usuario):
+        """
+        Método auxiliar para gerar documentos automaticamente.
+        """
+        from core.models import Config
+        from django.utils import timezone
+        import os
+        import tempfile
+        
+        # Buscar dados da empresa (contratada)
+        config = Config.objects.first()
+        empresa_data = config.company_data if config else {}
+        
+        # Preparar dados para preenchimento
+        dados_preenchimento = {
+            # Dados do cliente (contratante)
+            'cliente_nome': cliente.razao_social,
+            'cliente_cnpj': cliente.cnpj,
+            'cliente_endereco': cliente.endereco_completo,
+            'cliente_email': cliente.email_principal,
+            'cliente_telefone': cliente.telefone_principal,
+            
+            # Dados da empresa (contratada)
+            'empresa_nome': empresa_data.get('razao_social', 'Empresa'),
+            'empresa_cnpj': empresa_data.get('cnpj', ''),
+            'empresa_endereco': f"{empresa_data.get('endereco', {}).get('logradouro', '')}, {empresa_data.get('endereco', {}).get('numero', '')} - {empresa_data.get('endereco', {}).get('bairro', '')}",
+            
+            # Dados extras fornecidos
+            **dados_extra,
+            
+            # Dados do sistema
+            'data_contrato': timezone.now().strftime('%d/%m/%Y'),
+            'data_geracao': timezone.now().strftime('%d/%m/%Y %H:%M'),
+        }
+        
+        # Preencher template
+        conteudo_preenchido = template['conteudo']
+        for variavel, valor in dados_preenchimento.items():
+            conteudo_preenchido = conteudo_preenchido.replace(f'{{{{{variavel}}}}}', str(valor))
+        
+        # Criar arquivo temporário
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as f:
+            f.write(conteudo_preenchido)
+            arquivo_temp = f.name
+        
+        # Criar documento no banco
+        documento = DocumentoCliente.objects.create(
+            cliente=cliente,
+            nome=f"{template['nome']} - {cliente.razao_social}",
+            tipo_documento=tipo,
+            status='gerado',
+            origem='gerado',
+            template_usado=template['nome'],
+            dados_preenchidos=dados_preenchimento,
+            data_vencimento=dados_extra.get('data_vencimento'),
+            usuario_upload=usuario,
+            arquivo=arquivo_temp
+        )
+        
+        # Limpar arquivo temporário
+        try:
+            os.unlink(arquivo_temp)
+        except:
+            pass
+        
+        return documento

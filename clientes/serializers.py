@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.db import transaction, models
-from .models import Cliente, ContatoCliente, GrupoEmpresa
+from .models import Cliente, ContatoCliente, GrupoEmpresa, DocumentoCliente
 
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -664,3 +664,106 @@ class GrupoEmpresaSerializer(serializers.ModelSerializer):
     def get_empresas_count(self, obj):
         """Retorna o número de empresas no grupo"""
         return obj.empresas.count()
+
+
+class DocumentoClienteSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o modelo DocumentoCliente com suporte a documentos gerados automaticamente.
+    """
+    
+    # Campos calculados (read-only)
+    tamanho_arquivo = serializers.ReadOnlyField()
+    is_gerado_automaticamente = serializers.ReadOnlyField()
+    is_contrato = serializers.ReadOnlyField()
+    is_boleto = serializers.ReadOnlyField()
+    is_vencido = serializers.ReadOnlyField()
+    
+    # Campos relacionados
+    cliente_nome = serializers.CharField(
+        source='cliente.razao_social',
+        read_only=True,
+        help_text="Nome da empresa cliente"
+    )
+    
+    usuario_upload_nome = serializers.CharField(
+        source='usuario_upload.username',
+        read_only=True,
+        help_text="Nome do usuário que fez o upload"
+    )
+    
+    class Meta:
+        model = DocumentoCliente
+        fields = [
+            'id',
+            'cliente',
+            'cliente_nome',
+            'nome',
+            'tipo_documento',
+            'status',
+            'origem',
+            'arquivo',
+            'descricao',
+            'template_usado',
+            'dados_preenchidos',
+            'data_vencimento',
+            'data_upload',
+            'usuario_upload',
+            'usuario_upload_nome',
+            'ativo',
+            # Campos calculados
+            'tamanho_arquivo',
+            'is_gerado_automaticamente',
+            'is_contrato',
+            'is_boleto',
+            'is_vencido',
+        ]
+        read_only_fields = [
+            'id', 'data_upload', 'tamanho_arquivo',
+            'is_gerado_automaticamente', 'is_contrato', 'is_boleto', 'is_vencido'
+        ]
+    
+    def validate_data_vencimento(self, value):
+        """Valida data de vencimento"""
+        if value:
+            from django.utils import timezone
+            if value < timezone.now().date():
+                raise serializers.ValidationError("Data de vencimento não pode ser no passado")
+        return value
+    
+    def validate_dados_preenchidos(self, value):
+        """Valida dados preenchidos para documentos gerados"""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Dados preenchidos devem ser um objeto")
+        return value
+    
+    def create(self, validated_data):
+        """Cria documento com usuário atual"""
+        if not validated_data.get('usuario_upload'):
+            validated_data['usuario_upload'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class DocumentoClienteListSerializer(serializers.ModelSerializer):
+    """
+    Serializer simplificado para listagem de documentos.
+    """
+    
+    cliente_nome = serializers.CharField(
+        source='cliente.razao_social',
+        read_only=True
+    )
+    
+    class Meta:
+        model = DocumentoCliente
+        fields = [
+            'id',
+            'cliente',
+            'cliente_nome',
+            'nome',
+            'tipo_documento',
+            'status',
+            'origem',
+            'data_vencimento',
+            'data_upload',
+            'ativo',
+        ]

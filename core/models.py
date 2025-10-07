@@ -10,6 +10,7 @@ from .crypto import decrypt_string, encrypt_string
 from .validators import (
     validate_chat_settings,
     validate_company_data,
+    validate_document_templates,
     validate_email_settings,
 )
 
@@ -23,6 +24,7 @@ class Config(models.Model):
     email_settings = models.JSONField(default=dict, blank=True)
     appearance_settings = models.JSONField(default=dict, blank=True)
     whatsapp_settings = models.JSONField(default=dict, blank=True)
+    document_templates = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name = _("Configuração")
@@ -36,6 +38,7 @@ class Config(models.Model):
             ("manage_config_email", "Pode gerenciar Config - Email"),
             ("manage_config_appearance", "Pode gerenciar Config - Appearance"),
             ("manage_config_whatsapp", "Pode gerenciar Config - WhatsApp"),
+            ("manage_config_documents", "Pode gerenciar Config - Document Templates"),
         )
 
     def clean(self) -> None:
@@ -44,6 +47,7 @@ class Config(models.Model):
             (validate_company_data, "company_data", self.company_data or {}),
             (validate_chat_settings, "chat_settings", self.chat_settings or {}),
             (validate_email_settings, "email_settings", self.email_settings or {}),
+            (validate_document_templates, "document_templates", self.document_templates or {}),
         ):
             try:
                 fn(value)
