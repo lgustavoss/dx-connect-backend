@@ -1,0 +1,25 @@
+
+CONTRATO DE PRESTAÇÃO DE SERVIÇOS
+
+CONTRATANTE: Empresa Teste LTDA
+CNPJ: 11.222.333/0001-81
+Endereço: Rua das Flores, 123, Centro, São Paulo - SP, 01234-567 - nº 123 - Centro - São Paulo - SP - CEP: 01234-567
+
+CONTRATADA: Minha Empresa LTDA
+CNPJ: 00.000.000/0001-00
+Endereço: Rua da Empresa, 456 - Empresarial
+
+OBJETO: Prestação de serviços de suporte técnico conforme especificado.
+
+VALOR: R$ 1000.00
+VIGÊNCIA: 01/01/2024 a 31/12/2024
+
+Cláusulas:
+1. O contratante se compromete ao pagamento dos serviços.
+2. A contratada prestará suporte técnico conforme acordado.
+3. Este contrato tem vigência de 1 ano.
+
+07/10/2025
+
+________________________        ________________________
+    CONTRATANTE                       CONTRATADA

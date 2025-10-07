@@ -467,12 +467,7 @@ class DocumentoClienteViewSet(viewsets.ModelViewSet):
                 'error': 'cliente_id é obrigatório'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            cliente = get_object_or_404(Cliente, id=cliente_id, ativo=True)
-        except:
-            return Response({
-                'error': 'Cliente não encontrado'
-            }, status=status.HTTP_404_NOT_FOUND)
+        cliente = get_object_or_404(Cliente, id=cliente_id, status='ativo')
         
         # Buscar configurações e templates
         try:
@@ -534,12 +529,7 @@ class DocumentoClienteViewSet(viewsets.ModelViewSet):
                 'error': 'cliente_id é obrigatório'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            cliente = get_object_or_404(Cliente, id=cliente_id, ativo=True)
-        except:
-            return Response({
-                'error': 'Cliente não encontrado'
-            }, status=status.HTTP_404_NOT_FOUND)
+        cliente = get_object_or_404(Cliente, id=cliente_id, status='ativo')
         
         # Buscar configurações e templates
         try:
@@ -621,10 +611,16 @@ class DocumentoClienteViewSet(viewsets.ModelViewSet):
         for variavel, valor in dados_preenchimento.items():
             conteudo_preenchido = conteudo_preenchido.replace(f'{{{{{variavel}}}}}', str(valor))
         
-        # Criar arquivo temporário
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as f:
-            f.write(conteudo_preenchido)
-            arquivo_temp = f.name
+        # Criar arquivo temporário dentro do diretório de mídia
+        from django.core.files.base import ContentFile
+        from django.conf import settings
+        
+        # Criar arquivo temporário com nome único
+        import uuid
+        filename = f"{tipo}_{cliente.id}_{uuid.uuid4().hex[:8]}.txt"
+        
+        # Criar arquivo em memória
+        content_file = ContentFile(conteudo_preenchido.encode('utf-8'), name=filename)
         
         # Criar documento no banco
         documento = DocumentoCliente.objects.create(
@@ -635,15 +631,23 @@ class DocumentoClienteViewSet(viewsets.ModelViewSet):
             origem='gerado',
             template_usado=template['nome'],
             dados_preenchidos=dados_preenchimento,
-            data_vencimento=dados_extra.get('data_vencimento'),
+            data_vencimento=self._parse_date(dados_extra.get('data_vencimento')),
             usuario_upload=usuario,
-            arquivo=arquivo_temp
+            arquivo=content_file
         )
         
-        # Limpar arquivo temporário
-        try:
-            os.unlink(arquivo_temp)
-        except:
-            pass
-        
         return documento
+    
+    def _parse_date(self, date_value):
+        """Converte string de data para objeto date"""
+        if not date_value:
+            return None
+        
+        if isinstance(date_value, str):
+            from datetime import datetime
+            try:
+                return datetime.strptime(date_value, '%Y-%m-%d').date()
+            except ValueError:
+                return None
+        
+        return date_value

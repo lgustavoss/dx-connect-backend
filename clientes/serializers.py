@@ -726,6 +726,16 @@ class DocumentoClienteSerializer(serializers.ModelSerializer):
         """Valida data de vencimento"""
         if value:
             from django.utils import timezone
+            from datetime import date
+            
+            # Se value é uma string, converter para date
+            if isinstance(value, str):
+                from datetime import datetime
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%d').date()
+                except ValueError:
+                    raise serializers.ValidationError("Formato de data inválido. Use YYYY-MM-DD")
+            
             if value < timezone.now().date():
                 raise serializers.ValidationError("Data de vencimento não pode ser no passado")
         return value

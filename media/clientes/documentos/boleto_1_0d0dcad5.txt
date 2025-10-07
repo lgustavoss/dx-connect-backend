@@ -1,0 +1,15 @@
+
+BOLETO DE COBRANÇA
+
+Cliente: Empresa Teste LTDA
+CNPJ: 11.222.333/0001-81
+
+Serviços: Suporte técnico mensal
+Valor: R$ 500.00
+Vencimento: 2025-11-05
+
+Empresa: Minha Empresa LTDA
+CNPJ: 00.000.000/0001-00
+Banco: Banco do Brasil
+Agência: 1234
+Conta: 56789-0

@@ -1,0 +1,15 @@
+
+BOLETO DE COBRANÇA
+
+Cliente: Empresa Teste LTDA
+CNPJ: 11.222.333/0001-95
+
+Serviços: {{descricao_servicos}}
+Valor: R$ 100.00
+Vencimento: 2025-12-31
+
+Empresa: Empresa X LTDA
+CNPJ: 00000000000191
+Banco: {{banco}}
+Agência: {{agencia}}
+Conta: {{conta}}

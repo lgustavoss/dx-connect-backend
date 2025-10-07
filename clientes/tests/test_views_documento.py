@@ -318,7 +318,7 @@ class DocumentoClienteGeracaoTests(APITestCase):
             criado_por=self.user,
             email_principal="contato@empresateste.com",
             telefone_principal="(11) 99999-9999",
-            logradouro="Rua das Flores",
+            endereco="Rua das Flores, 123, Centro, São Paulo - SP, 01234-567",
             numero="123",
             bairro="Centro",
             cidade="São Paulo",
@@ -390,7 +390,8 @@ class DocumentoClienteGeracaoTests(APITestCase):
         
         response = self.client.post('/api/v1/documentos/gerar-contrato/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn('Cliente não encontrado', response.data['error'])
+        self.assertIn('detail', response.data)
+        self.assertIn('Cliente', response.data['detail'])
     
     def test_gerar_contrato_template_inexistente(self):
         """Testa geração de contrato com template inexistente."""
@@ -455,7 +456,8 @@ class DocumentoClienteGeracaoTests(APITestCase):
         
         response = self.client.post('/api/v1/documentos/gerar-boleto/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn('Cliente não encontrado', response.data['error'])
+        self.assertIn('detail', response.data)
+        self.assertIn('Cliente', response.data['detail'])
     
     def test_gerar_documento_unauthenticated(self):
         """Testa geração de documento sem autenticação."""
