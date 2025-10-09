@@ -141,14 +141,38 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-# CORS
+# ==============================================================================
+# CORS - CROSS-ORIGIN RESOURCE SHARING
+# ==============================================================================
+# Configuração para permitir requisições do frontend com JWT via headers
+# 
+# IMPORTANTE:
+# - CORS_ALLOW_CREDENTIALS deve ser False para JWT via headers (sem cookies)
+# - CORS_ALLOW_ALL_ORIGINS nunca deve ser True em produção
+# - Use origins específicos em CORS_ALLOWED_ORIGINS
+# ==============================================================================
+
+# Origens permitidas (configuradas via variável de ambiente)
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
-CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
+
+# NUNCA permitir todas as origens em produção
+# Em desenvolvimento, se não houver origins configuradas, permite localhost
+if not CORS_ALLOWED_ORIGINS and DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+# IMPORTANTE: Manter False para JWT via headers (padrão)
 CORS_ALLOW_CREDENTIALS = False
+
+# Headers permitidos (inclui 'authorization' para JWT)
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
-    "authorization",
+    "authorization",  # Essencial para JWT
     "content-type",
     "dnt",
     "origin",
@@ -156,6 +180,8 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+# Métodos HTTP permitidos
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
