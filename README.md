@@ -79,7 +79,25 @@ curl -X POST http://localhost:8001/api/v1/auth/token/ \
 
 ### Deploy em Produção
 
-Para deploy em produção, consulte a seção [Deploy em Produção](#deploy-em-produção) abaixo.
+**📚 Guias de Deploy Disponíveis**:
+- 🚀 **[Guia Rápido (10min)](docs/QUICK_DEPLOY_GUIDE.md)** - Deploy rápido em produção
+- 📖 **[Guia Completo](docs/DEPLOY.md)** - Documentação detalhada de deploy
+- ✅ **[Checklist Pós-Deploy](docs/POST_DEPLOY_CHECKLIST.md)** - Validação após deploy
+
+**⚡ Deploy Rápido**:
+```bash
+# 1. Configurar ambiente
+cp .env.example .env.production
+nano .env.production  # Configure SECRET_KEY, ALLOWED_HOSTS, etc
+
+# 2. Deploy
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# 3. Validar
+bash scripts/validate_deploy.sh
+```
+
+Para instruções detalhadas, consulte [Deploy em Produção](#-deploy-em-produção).
 
 ## 🧪 Testes
 

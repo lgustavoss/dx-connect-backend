@@ -18,11 +18,20 @@ def fix_line_endings(file_path):
     print(f"OK Corrigido: {file_path}")
 
 def main():
-    """Corrige todos os arquivos .sh no diretório docker/"""
-    docker_dir = Path(__file__).parent / 'docker'
+    """Corrige todos os arquivos .sh nos diretórios docker/ e scripts/"""
+    base_dir = Path(__file__).parent
     
-    for sh_file in docker_dir.glob('*.sh'):
-        fix_line_endings(sh_file)
+    # Corrigir arquivos em docker/
+    docker_dir = base_dir / 'docker'
+    if docker_dir.exists():
+        for sh_file in docker_dir.glob('*.sh'):
+            fix_line_endings(sh_file)
+    
+    # Corrigir arquivos em scripts/
+    scripts_dir = base_dir / 'scripts'
+    if scripts_dir.exists():
+        for sh_file in scripts_dir.glob('*.sh'):
+            fix_line_endings(sh_file)
     
     print("\nTodos os arquivos .sh foram corrigidos!")
 
