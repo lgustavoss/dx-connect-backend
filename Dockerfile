@@ -17,8 +17,8 @@ RUN pip install --upgrade pip \
 
 COPY . .
 
-# Usar entrypoint simples
-RUN chmod +x /app/docker/entrypoint_simple.sh
+# Preparar entrypoint
+RUN chmod +x /app/docker/entrypoint.sh
 
 RUN adduser --disabled-password --gecos "" appuser \
   && chown -R appuser:appuser /app
@@ -26,5 +26,5 @@ USER appuser
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/docker/entrypoint_simple.sh"]
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 

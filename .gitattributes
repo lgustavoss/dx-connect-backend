@@ -1,0 +1,40 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts must have LF line endings
+*.sh text eol=lf
+
+# Python files
+*.py text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# JSON, YAML, TOML
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+
+# Markdown
+*.md text eol=lf
+
+# Config files
+.env* text eol=lf
+.coveragerc text eol=lf
+.editorconfig text eol=lf
+
+# Images (binary)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+
+# Other binary files
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
