@@ -1,6 +1,6 @@
 import django_filters
 from django.db.models import Q
-from .models import Cliente, ContatoCliente
+from .models import Cliente, ContatoCliente, DocumentoCliente
 
 
 class ClienteFilter(django_filters.FilterSet):
@@ -208,5 +208,97 @@ class ContatoClienteFilter(django_filters.FilterSet):
             'whatsapp',
             'email',
             'cargo',
+            'ativo',
+        ]
+
+
+class DocumentoClienteFilter(django_filters.FilterSet):
+    """
+    Filtros para o modelo DocumentoCliente.
+    
+    Filtros disponíveis:
+    - cliente: filtro por ID do cliente
+    - nome: busca por nome (icontains)
+    - tipo_documento: filtro por tipo de documento
+    - status: filtro por status do documento
+    - origem: filtro por origem (manual/gerado/importado)
+    - template_usado: busca por template usado (icontains)
+    - data_upload_apos: documentos enviados após data
+    - data_upload_antes: documentos enviados antes de data
+    - data_vencimento_apos: documentos com vencimento após data
+    - data_vencimento_antes: documentos com vencimento antes de data
+    - ativo: filtro por status ativo
+    """
+    
+    cliente = django_filters.NumberFilter(
+        field_name='cliente',
+        help_text='Filtro por ID do cliente'
+    )
+    
+    nome = django_filters.CharFilter(
+        field_name='nome',
+        lookup_expr='icontains',
+        help_text='Busca por nome (contém)'
+    )
+    
+    tipo_documento = django_filters.ChoiceFilter(
+        choices=DocumentoCliente.TIPO_DOCUMENTO_CHOICES,
+        help_text='Filtro por tipo de documento'
+    )
+    
+    status = django_filters.ChoiceFilter(
+        choices=DocumentoCliente.STATUS_DOCUMENTO_CHOICES,
+        help_text='Filtro por status do documento'
+    )
+    
+    origem = django_filters.ChoiceFilter(
+        choices=DocumentoCliente.ORIGEM_DOCUMENTO_CHOICES,
+        help_text='Filtro por origem do documento'
+    )
+    
+    template_usado = django_filters.CharFilter(
+        field_name='template_usado',
+        lookup_expr='icontains',
+        help_text='Busca por template usado (contém)'
+    )
+    
+    data_upload_apos = django_filters.DateFilter(
+        field_name='data_upload__date',
+        lookup_expr='gte',
+        help_text='Documentos enviados após esta data'
+    )
+    
+    data_upload_antes = django_filters.DateFilter(
+        field_name='data_upload__date',
+        lookup_expr='lte',
+        help_text='Documentos enviados antes desta data'
+    )
+    
+    data_vencimento_apos = django_filters.DateFilter(
+        field_name='data_vencimento',
+        lookup_expr='gte',
+        help_text='Documentos com vencimento após esta data'
+    )
+    
+    data_vencimento_antes = django_filters.DateFilter(
+        field_name='data_vencimento',
+        lookup_expr='lte',
+        help_text='Documentos com vencimento antes desta data'
+    )
+    
+    ativo = django_filters.BooleanFilter(
+        field_name='ativo',
+        help_text='Filtro por status ativo'
+    )
+    
+    class Meta:
+        model = DocumentoCliente
+        fields = [
+            'cliente',
+            'nome',
+            'tipo_documento',
+            'status',
+            'origem',
+            'template_usado',
             'ativo',
         ]

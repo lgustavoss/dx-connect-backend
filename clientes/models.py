@@ -655,12 +655,30 @@ class DocumentoCliente(models.Model):
     # Opções para tipo de documento
     TIPO_DOCUMENTO_CHOICES = [
         ('contrato', 'Contrato'),
+        ('boleto', 'Boleto'),
         ('proposta', 'Proposta'),
         ('certificado', 'Certificado'),
         ('licenca', 'Licença'),
         ('alvara', 'Alvará'),
         ('comprovante', 'Comprovante'),
         ('outro', 'Outro'),
+    ]
+    
+    # Opções para status do documento
+    STATUS_DOCUMENTO_CHOICES = [
+        ('gerado', 'Gerado'),
+        ('enviado', 'Enviado'),
+        ('assinado', 'Assinado'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+        ('expirado', 'Expirado'),
+    ]
+    
+    # Opções para origem do documento
+    ORIGEM_DOCUMENTO_CHOICES = [
+        ('manual', 'Upload Manual'),
+        ('gerado', 'Gerado Automaticamente'),
+        ('importado', 'Importado de Sistema'),
     ]
     
     # Relacionamento com cliente
@@ -687,10 +705,49 @@ class DocumentoCliente(models.Model):
         help_text="Tipo do documento"
     )
     
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_DOCUMENTO_CHOICES,
+        default='gerado',
+        verbose_name="Status",
+        help_text="Status atual do documento"
+    )
+    
+    origem = models.CharField(
+        max_length=20,
+        choices=ORIGEM_DOCUMENTO_CHOICES,
+        default='manual',
+        verbose_name="Origem",
+        help_text="Como o documento foi criado"
+    )
+    
     arquivo = models.FileField(
         upload_to='clientes/documentos/',
         verbose_name="Arquivo",
         help_text="Arquivo do documento"
+    )
+    
+    # Campos específicos para documentos gerados automaticamente
+    template_usado = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Template Usado",
+        help_text="Nome do template usado para gerar o documento"
+    )
+    
+    dados_preenchidos = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Dados Preenchidos",
+        help_text="Dados usados para preencher o template"
+    )
+    
+    data_vencimento = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name="Data de Vencimento",
+        help_text="Data de vencimento do documento (se aplicável)"
     )
     
     descricao = models.TextField(
@@ -729,19 +786,47 @@ class DocumentoCliente(models.Model):
         indexes = [
             models.Index(fields=['cliente', 'tipo_documento']),
             models.Index(fields=['data_upload']),
+            models.Index(fields=['status']),
+            models.Index(fields=['origem']),
         ]
     
     def __str__(self):
         return f"{self.nome} - {self.cliente.razao_social}"
     
     @property
+    def is_gerado_automaticamente(self):
+        """Verifica se o documento foi gerado automaticamente"""
+        return self.origem == 'gerado'
+    
+    @property
+    def is_contrato(self):
+        """Verifica se é um contrato"""
+        return self.tipo_documento == 'contrato'
+    
+    @property
+    def is_boleto(self):
+        """Verifica se é um boleto"""
+        return self.tipo_documento == 'boleto'
+    
+    @property
+    def is_vencido(self):
+        """Verifica se o documento está vencido"""
+        if self.data_vencimento:
+            from django.utils import timezone
+            return timezone.now().date() > self.data_vencimento
+        return False
+    
+    @property
     def tamanho_arquivo(self):
         """Retorna o tamanho do arquivo em formato legível"""
-        if self.arquivo:
-            size = self.arquivo.size
-            for unit in ['B', 'KB', 'MB', 'GB']:
-                if size < 1024.0:
-                    return f"{size:.1f} {unit}"
-                size /= 1024.0
-            return f"{size:.1f} TB"
+        if self.arquivo and self.arquivo.name:
+            try:
+                size = self.arquivo.size
+                for unit in ['B', 'KB', 'MB', 'GB']:
+                    if size < 1024.0:
+                        return f"{size:.1f} {unit}"
+                    size /= 1024.0
+                return f"{size:.1f} TB"
+            except (OSError, FileNotFoundError):
+                return "Arquivo não encontrado"
         return "0 B"

@@ -5,7 +5,8 @@ from .views import (
     ContatoClienteViewSet,
     ChatIntegrationView,
     CadastroManualView,
-    GrupoEmpresaViewSet
+    GrupoEmpresaViewSet,
+    DocumentoClienteViewSet
 )
 
 # Router para ViewSets
@@ -13,6 +14,7 @@ router = DefaultRouter()
 router.register(r'clientes', ClienteViewSet, basename='cliente')
 router.register(r'contatos', ContatoClienteViewSet, basename='contato')
 router.register(r'grupos-empresa', GrupoEmpresaViewSet, basename='grupo-empresa')
+router.register(r'documentos', DocumentoClienteViewSet, basename='documento')
 
 # URLs do app clientes
 urlpatterns = [
