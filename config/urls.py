@@ -68,6 +68,8 @@ urlpatterns = [
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),
     path("api/v1/authz/groups/<int:pk>/", GroupDetailView.as_view()),
     path("api/v1/authz/agents/<int:agent_id>/groups/", AgentGroupsView.as_view()),
+    # Integrações (v1)
+    path("api/v1/integrations/", include("integrations.urls")),
     # Clientes (v1)
     path("api/v1/", include(clientes_urls)),
     # Docs
