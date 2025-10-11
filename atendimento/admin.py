@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Departamento, FilaAtendimento, Atendimento
+from .models import Departamento, FilaAtendimento, Atendimento, TransferenciaAtendimento
 
 
 @admin.register(Departamento)
@@ -30,4 +30,20 @@ class AtendimentoAdmin(admin.ModelAdmin):
         'criado_em', 'iniciado_em', 'primeira_resposta_em', 'finalizado_em',
         'tempo_primeira_resposta_segundos', 'tempo_total_atendimento_segundos'
     ]
+
+
+@admin.register(TransferenciaAtendimento)
+class TransferenciaAtendimentoAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'atendimento', 'atendente_origem', 'atendente_destino',
+        'departamento_origem', 'departamento_destino', 'aceito', 'criado_em'
+    ]
+    list_filter = ['aceito', 'criado_em', 'departamento_origem', 'departamento_destino']
+    search_fields = [
+        'atendimento__cliente__razao_social',
+        'atendente_origem__username',
+        'atendente_destino__username',
+        'motivo'
+    ]
+    readonly_fields = ['criado_em', 'aceito_em']
 

@@ -428,3 +428,96 @@ class Atendimento(models.Model):
         else:
             self.save(update_fields=['total_mensagens_atendente', 'atualizado_em'])
 
+
+class TransferenciaAtendimento(models.Model):
+    """
+    Histórico de transferências entre atendentes (Issue #38).
+    
+    Mantém auditoria completa de todas as transferências realizadas.
+    """
+    
+    # Relacionamentos
+    atendimento = models.ForeignKey(
+        Atendimento,
+        on_delete=models.CASCADE,
+        related_name='transferencias',
+        verbose_name=_("Atendimento")
+    )
+    
+    atendente_origem = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='transferencias_enviadas',
+        verbose_name=_("Atendente Origem")
+    )
+    
+    atendente_destino = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='transferencias_recebidas',
+        verbose_name=_("Atendente Destino")
+    )
+    
+    departamento_origem = models.ForeignKey(
+        Departamento,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='transferencias_saida',
+        verbose_name=_("Departamento Origem")
+    )
+    
+    departamento_destino = models.ForeignKey(
+        Departamento,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='transferencias_entrada',
+        verbose_name=_("Departamento Destino")
+    )
+    
+    # Dados da transferência
+    motivo = models.TextField(
+        verbose_name=_("Motivo da Transferência"),
+        help_text=_("Motivo informado pelo atendente")
+    )
+    
+    aceito = models.BooleanField(
+        default=True,
+        verbose_name=_("Aceito"),
+        help_text=_("Se a transferência foi aceita pelo atendente destino")
+    )
+    
+    aceito_em = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Aceito em")
+    )
+    
+    # Timestamps
+    criado_em = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Transferido em"),
+        db_index=True
+    )
+    
+    class Meta:
+        verbose_name = _("Transferência de Atendimento")
+        verbose_name_plural = _("Transferências de Atendimento")
+        ordering = ['-criado_em']
+        indexes = [
+            models.Index(fields=['atendimento', 'criado_em']),
+            models.Index(fields=['atendente_origem', 'criado_em']),
+            models.Index(fields=['atendente_destino', 'criado_em']),
+        ]
+    
+    def __str__(self) -> str:
+        origem = self.atendente_origem.username if self.atendente_origem else "Sistema"
+        destino = self.atendente_destino.username if self.atendente_destino else "Não atribuído"
+        return f"Transferência #{self.id}: {origem} → {destino}"
+    
+    @property
+    def foi_entre_departamentos(self) -> bool:
+        """Verifica se foi transferência entre departamentos"""
+        return self.departamento_origem_id != self.departamento_destino_id
+

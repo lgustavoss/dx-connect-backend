@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Departamento, FilaAtendimento, Atendimento
+from .models import Departamento, FilaAtendimento, Atendimento, TransferenciaAtendimento
 
 
 class DepartamentoSerializer(serializers.ModelSerializer):
@@ -79,4 +79,37 @@ class AtendimentoListSerializer(serializers.ModelSerializer):
             'id', 'cliente_nome', 'atendente_nome', 'status',
             'prioridade', 'duracao_minutos', 'criado_em'
         ]
+
+
+class TransferenciaAtendimentoSerializer(serializers.ModelSerializer):
+    """Serializer para histórico de transferências"""
+    atendente_origem_nome = serializers.CharField(source='atendente_origem.username', read_only=True)
+    atendente_destino_nome = serializers.CharField(source='atendente_destino.username', read_only=True)
+    departamento_origem_nome = serializers.CharField(source='departamento_origem.nome', read_only=True)
+    departamento_destino_nome = serializers.CharField(source='departamento_destino.nome', read_only=True)
+    foi_entre_departamentos = serializers.BooleanField(read_only=True)
+    
+    class Meta:
+        model = TransferenciaAtendimento
+        fields = [
+            'id', 'atendimento', 'atendente_origem', 'atendente_origem_nome',
+            'atendente_destino', 'atendente_destino_nome', 'departamento_origem',
+            'departamento_origem_nome', 'departamento_destino', 'departamento_destino_nome',
+            'motivo', 'aceito', 'aceito_em', 'criado_em', 'foi_entre_departamentos'
+        ]
+        read_only_fields = ['id', 'criado_em', 'aceito_em']
+
+
+class TransferirAtendimentoSerializer(serializers.Serializer):
+    """Serializer para request de transferência"""
+    atendente_destino_id = serializers.IntegerField(
+        help_text="ID do atendente que receberá o atendimento"
+    )
+    motivo = serializers.CharField(
+        help_text="Motivo da transferência"
+    )
+    departamento_destino_id = serializers.IntegerField(
+        required=False,
+        help_text="ID do departamento destino (opcional, para transferência entre departamentos)"
+    )
 
