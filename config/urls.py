@@ -20,6 +20,7 @@ from accounts.views import (
     GroupListCreateView,
     PermissionListView,
 )
+from accounts.views_preferences import PreferenciasNotificacaoView
 from clientes.urls import urlpatterns as clientes_urls
 from django.conf import settings
 from django.conf.urls.static import static
@@ -50,6 +51,8 @@ urlpatterns = [
     path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # Me (v1)
     path("api/v1/me/", me_view),
+    # Preferências de Notificação (v1)
+    path("api/v1/me/preferencias-notificacao/", PreferenciasNotificacaoView.as_view(), name="preferencias-notificacao"),
     # Config (v1)
     path("api/v1/config/", ConfigView.as_view()),
     path("api/v1/config/company/", CompanyConfigView.as_view()),

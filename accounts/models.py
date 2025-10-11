@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+# Importar modelo de preferências
+from .models_preferences import PreferenciasNotificacao
+
 
 class Agent(AbstractUser):
     display_name = models.CharField(max_length=150, blank=True)
