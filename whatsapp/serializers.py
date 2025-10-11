@@ -53,10 +53,10 @@ class WhatsAppMessageSerializer(serializers.ModelSerializer):
             'id', 'session', 'usuario', 'usuario_nome', 'message_id',
             'client_message_id', 'direction', 'message_type', 'chat_id',
             'contact_number', 'contact_name', 'text_content', 'media_url',
-            'media_mime_type', 'media_size', 'payload', 'status',
-            'created_at', 'queued_at', 'sent_at', 'delivered_at', 'read_at',
-            'error_message', 'is_from_me', 'latency_to_sent_ms',
-            'latency_to_delivered_ms', 'latency_to_read_ms',
+            'media_mime_type', 'media_size', 'payload', 'raw_payload',
+            'protocol_version', 'status', 'created_at', 'queued_at',
+            'sent_at', 'delivered_at', 'read_at', 'error_message', 'is_from_me',
+            'latency_to_sent_ms', 'latency_to_delivered_ms', 'latency_to_read_ms',
             'total_latency_ms', 'is_latency_acceptable'
         ]
         read_only_fields = [

@@ -329,6 +329,21 @@ class WhatsAppMessage(models.Model):
         help_text=_("Dados completos da mensagem em formato JSON")
     )
     
+    # Payload bruto e versão do protocolo (Issue #44)
+    raw_payload = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Payload Bruto"),
+        help_text=_("Payload bruto recebido do webhook/API, sem processamento")
+    )
+    
+    protocol_version = models.CharField(
+        max_length=10,
+        default='v1',
+        verbose_name=_("Versão do Protocolo"),
+        help_text=_("Versão do protocolo de comunicação (v1, v2, etc)")
+    )
+    
     # Status
     status = models.CharField(
         max_length=20,

@@ -226,7 +226,9 @@ class WhatsAppSessionService:
         user_id: int,
         from_number: str,
         chat_id: str,
-        payload: Dict
+        payload: Dict,
+        raw_payload: Optional[Dict] = None,
+        protocol_version: str = 'v1'
     ) -> WhatsAppMessage:
         """
         Processa uma mensagem recebida.
@@ -261,6 +263,8 @@ class WhatsAppSessionService:
             media_mime_type=payload.get('mime_type', ''),
             media_size=payload.get('media_size'),
             payload=payload,
+            raw_payload=raw_payload or payload,  # Usar raw_payload se fornecido
+            protocol_version=protocol_version,
             is_from_me=False,
             usuario_id=user_id,
             status='delivered'  # Mensagem recebida já está "delivered"

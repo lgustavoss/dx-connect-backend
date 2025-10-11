@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Avg, Count
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -337,6 +338,174 @@ class WhatsAppSendMessageView(APIView):
         except Exception as e:
             return Response(
                 {'error': f'Erro ao enviar mensagem: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class WhatsAppWebhookView(APIView):
+    """
+    Webhook para receber mensagens externas do WhatsApp.
+    
+    Implementa a Issue #44 - recebimento de mensagens com payload bruto
+    e versão do protocolo.
+    """
+    permission_classes = [AllowAny]  # Webhook público (validar via assinatura no futuro)
+    
+    @extend_schema(
+        summary="Webhook para receber mensagens WhatsApp",
+        description="Recebe mensagens do WhatsApp via webhook externo (formato v1)",
+        responses={200: WhatsAppMessageSerializer}
+    )
+    def post(self, request):
+        """
+        Processa mensagem recebida via webhook.
+        
+        Formato esperado (v1):
+        {
+            "event": "message_received",
+            "data": {
+                "from": "5511999999999",
+                "message": "Texto da mensagem",
+                "message_id": "abc123",
+                "timestamp": "2024-01-01T10:00:00Z",
+                "media_url": null,
+                "media_type": null
+            },
+            "version": "v1"
+        }
+        """
+        import logging
+        from django.utils import timezone
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        logger = logging.getLogger(__name__)
+        
+        # Captura timestamp de recebimento para cálculo de latência
+        received_at = timezone.now()
+        
+        # Armazena payload bruto
+        raw_payload = request.data
+        
+        # Extrai dados do evento
+        event_type = raw_payload.get('event')
+        event_data = raw_payload.get('data', {})
+        protocol_version = raw_payload.get('version', 'v1')
+        
+        if event_type != 'message_received':
+            return Response(
+                {'error': f'Evento não suportado: {event_type}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Valida campos obrigatórios
+        required_fields = ['from', 'message']
+        missing_fields = [f for f in required_fields if f not in event_data]
+        if missing_fields:
+            return Response(
+                {'error': f'Campos obrigatórios ausentes: {", ".join(missing_fields)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Extrai dados da mensagem
+            from_number = event_data['from']
+            message_text = event_data['message']
+            message_id = event_data.get('message_id', f"webhook_{timezone.now().timestamp()}")
+            timestamp_str = event_data.get('timestamp')
+            media_url = event_data.get('media_url')
+            media_type = event_data.get('media_type')
+            
+            # Determina tipo de mensagem
+            if media_url:
+                if media_type and media_type.startswith('image'):
+                    msg_type = 'image'
+                elif media_type and media_type.startswith('audio'):
+                    msg_type = 'audio'
+                elif media_type and media_type.startswith('video'):
+                    msg_type = 'video'
+                else:
+                    msg_type = 'document'
+            else:
+                msg_type = 'text'
+            
+            # Prepara payload processado
+            processed_payload = {
+                'type': msg_type,
+                'text': message_text,
+                'media_url': media_url or '',
+                'mime_type': media_type or '',
+                'contact_name': event_data.get('contact_name', ''),
+                'message_id': message_id,
+            }
+            
+            # TODO: Determinar qual usuário/sessão deve receber a mensagem
+            # Por enquanto, busca a primeira sessão ativa
+            from whatsapp.models import WhatsAppSession
+            active_session = WhatsAppSession.objects.filter(
+                status='ready',
+                is_active=True
+            ).first()
+            
+            if not active_session:
+                logger.warning("Nenhuma sessão ativa disponível para receber mensagem")
+                return Response(
+                    {'error': 'Nenhuma sessão ativa disponível'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            user_id = active_session.usuario_id
+            chat_id = from_number
+            
+            # Processa a mensagem via serviço
+            service = get_whatsapp_session_service()
+            message = async_to_sync(service.handle_incoming_message)(
+                user_id=user_id,
+                from_number=from_number,
+                chat_id=chat_id,
+                payload=processed_payload,
+                raw_payload=raw_payload,
+                protocol_version=protocol_version
+            )
+            
+            # Calcula latência
+            latency_ms = (timezone.now() - received_at).total_seconds() * 1000
+            
+            logger.info(
+                f"Mensagem webhook recebida: {message_id} de {from_number} "
+                f"(latência: {latency_ms:.0f}ms, protocolo: {protocol_version})"
+            )
+            
+            # Emite evento via WebSocket no formato v1
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                event_payload = {
+                    "event": "message_received",
+                    "data": {
+                        "from": from_number,
+                        "message": message_text,
+                        "message_id": message_id,
+                        "timestamp": timestamp_str or timezone.now().isoformat(),
+                        "media_url": media_url,
+                        "media_type": media_type,
+                        "latency_ms": latency_ms,
+                    },
+                    "version": protocol_version
+                }
+                
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user_id}_whatsapp",
+                    {"type": "whatsapp.event", "event": event_payload}
+                )
+            
+            # Retorna mensagem criada
+            serializer = WhatsAppMessageSerializer(message)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"Erro ao processar webhook: {e}", exc_info=True)
+            return Response(
+                {'error': f'Erro ao processar mensagem: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
