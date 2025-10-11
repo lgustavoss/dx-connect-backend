@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "core",
     "clientes",
     "integrations",
+    "whatsapp",
 ]
 
 MIDDLEWARE = [
