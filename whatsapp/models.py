@@ -5,6 +5,9 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+# Importar modelo MediaFile
+from .media import MediaFile
+
 
 class WhatsAppSession(models.Model):
     """

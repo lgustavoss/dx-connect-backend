@@ -7,6 +7,7 @@ import logging
 from typing import Dict, Optional
 from celery import shared_task
 from django.utils import timezone
+from django.db import models
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
@@ -201,4 +202,108 @@ def cleanup_old_message_queue():
         logger.info(f"Limpeza: {deleted_count} mensagens antigas removidas")
     
     return {'deleted_count': deleted_count}
+
+
+# ==================== TASKS DE PROCESSAMENTO DE MÍDIA (Issue #46) ====================
+
+@shared_task(
+    bind=True,
+    max_retries=2,
+    default_retry_delay=120
+)
+def process_media_task(self, media_file_id: int):
+    """
+    Task Celery para processar mídia (download + conversão + thumbnail).
+    
+    Args:
+        self: Instância da task (bind=True)
+        media_file_id: ID do MediaFile para processar
+    """
+    from whatsapp.media import MediaFile
+    from whatsapp.media_service import get_media_processing_service
+    
+    logger.info(f"[Task] Processando mídia ID {media_file_id}")
+    
+    try:
+        media_file = MediaFile.objects.get(id=media_file_id)
+        service = get_media_processing_service()
+        
+        # Processa mídia (thumbnail + conversão)
+        success = service.process_media(media_file)
+        
+        if success:
+            logger.info(f"[Task] Mídia {media_file_id} processada com sucesso")
+            return {'success': True, 'media_file_id': media_file_id}
+        else:
+            logger.error(f"[Task] Falha ao processar mídia {media_file_id}")
+            raise Exception("Falha no processamento")
+    
+    except MediaFile.DoesNotExist:
+        logger.error(f"[Task] MediaFile {media_file_id} não encontrado")
+        return {'success': False, 'error': 'not_found'}
+    
+    except Exception as e:
+        logger.error(f"[Task] Erro ao processar mídia {media_file_id}: {e}", exc_info=True)
+        raise
+
+
+@shared_task
+def cleanup_orphan_media_files():
+    """
+    Task periódica para limpar arquivos de mídia órfãos (Issue #46).
+    
+    Remove:
+    - Mídias com erro após 3 dias
+    - Mídias não acessadas há mais de 90 dias
+    """
+    from whatsapp.media import MediaFile
+    from datetime import timedelta
+    import os
+    
+    logger.info("[Task] Iniciando limpeza de mídias órfãs")
+    
+    cutoff_error = timezone.now() - timedelta(days=3)
+    cutoff_unused = timezone.now() - timedelta(days=90)
+    
+    # Busca mídias para remover
+    to_delete = MediaFile.objects.filter(
+        models.Q(status='error', created_at__lt=cutoff_error) |
+        models.Q(last_accessed_at__lt=cutoff_unused)
+    )
+    
+    deleted_count = 0
+    freed_space = 0
+    
+    for media in to_delete:
+        # Calcula espaço antes de deletar
+        if media.file_size:
+            freed_space += media.file_size
+        
+        # Remove arquivos físicos
+        try:
+            if media.original_file:
+                media.original_file.delete(save=False)
+            if media.converted_file:
+                media.converted_file.delete(save=False)
+            if media.thumbnail_file:
+                media.thumbnail_file.delete(save=False)
+        except Exception as e:
+            logger.warning(f"Erro ao remover arquivos de {media.file_id}: {e}")
+        
+        # Remove registro do banco
+        media.delete()
+        deleted_count += 1
+    
+    freed_space_mb = round(freed_space / (1024 * 1024), 2)
+    
+    if deleted_count > 0:
+        logger.info(
+            f"[Task] Limpeza concluída: {deleted_count} mídias removidas, "
+            f"{freed_space_mb} MB liberados"
+        )
+    
+    return {
+        'deleted_count': deleted_count,
+        'freed_space_mb': freed_space_mb
+    }
 
