@@ -58,11 +58,13 @@ urlpatterns = [
     path("api/v1/config/appearance/", AppearanceConfigView.as_view()),
     path("api/v1/config/whatsapp/", WhatsAppConfigView.as_view()),
     path("api/v1/config/appearance/upload/", AppearanceUploadView.as_view()),
-    # WhatsApp Session/Messages (stub)
+    # WhatsApp Session/Messages (stub - legacy, mantido para compatibilidade)
     path("api/v1/whatsapp/session/start", WhatsAppSessionStartView.as_view()),
     path("api/v1/whatsapp/session", WhatsAppSessionStopView.as_view()),
     path("api/v1/whatsapp/session/status", WhatsAppSessionStatusView.as_view()),
     path("api/v1/whatsapp/messages", WhatsAppSendMessageView.as_view()),
+    # WhatsApp (v1 - novo app completo)
+    path("api/v1/whatsapp/", include("whatsapp.urls")),
     # AuthZ (v1)
     path("api/v1/authz/permissions/", PermissionListView.as_view()),
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),
