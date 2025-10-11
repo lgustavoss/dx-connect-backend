@@ -134,6 +134,38 @@ class WhatsAppSession(models.Model):
         help_text=_("Número de erros desde a última conexão")
     )
     
+    # Reconexão automática (Issue #47)
+    auto_reconnect = models.BooleanField(
+        default=True,
+        verbose_name=_("Reconexão Automática"),
+        help_text=_("Tentar reconectar automaticamente em caso de desconexão")
+    )
+    
+    reconnect_attempts = models.IntegerField(
+        default=0,
+        verbose_name=_("Tentativas de Reconexão"),
+        help_text=_("Número de tentativas de reconexão desde a última falha")
+    )
+    
+    last_reconnect_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Última Tentativa de Reconexão")
+    )
+    
+    # Configurações de proxy (Issue #47)
+    proxy_enabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Proxy Habilitado")
+    )
+    
+    proxy_url = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name=_("URL do Proxy"),
+        help_text=_("Ex: http://proxy.example.com:8080")
+    )
+    
     # Flags
     is_active = models.BooleanField(
         default=True,

@@ -307,3 +307,98 @@ def cleanup_orphan_media_files():
         'freed_space_mb': freed_space_mb
     }
 
+
+# ==================== RECONEXÃO AUTOMÁTICA (Issue #47) ====================
+
+@shared_task(bind=True, max_retries=5)
+def auto_reconnect_session_task(self, session_id: int):
+    """
+    Task Celery para reconexão automática de sessão WhatsApp (Issue #47).
+    
+    Implementa backoff exponencial:
+    - Tentativa 1: Imediato
+    - Tentativa 2: 30s depois
+    - Tentativa 3: 60s depois
+    - Tentativa 4: 120s depois
+    - Tentativa 5: 240s depois
+    - Tentativa 6: 480s depois
+    
+    Args:
+        self: Instância da task
+        session_id: ID da sessão para reconectar
+    """
+    from whatsapp.models import WhatsAppSession
+    from whatsapp.service import get_whatsapp_session_service
+    from asgiref.sync import async_to_sync
+    
+    logger.info(
+        f"[Reconnect] Tentando reconectar sessão {session_id} "
+        f"(tentativa {self.request.retries + 1}/{self.max_retries + 1})"
+    )
+    
+    try:
+        session = WhatsAppSession.objects.get(id=session_id)
+        
+        # Verifica se reconexão automática está habilitada
+        if not session.auto_reconnect:
+            logger.info(f"[Reconnect] Reconexão automática desabilitada para sessão {session_id}")
+            return {'success': False, 'reason': 'auto_reconnect_disabled'}
+        
+        # Atualiza contador de tentativas
+        session.reconnect_attempts = self.request.retries + 1
+        session.last_reconnect_at = timezone.now()
+        session.save(update_fields=['reconnect_attempts', 'last_reconnect_at'])
+        
+        # Tenta reconectar
+        service = get_whatsapp_session_service()
+        result = async_to_sync(service.start_session)(session.usuario_id)
+        
+        logger.info(
+            f"[Reconnect] Sessão {session_id} reconectada com sucesso "
+            f"após {self.request.retries + 1} tentativas"
+        )
+        
+        # Reseta contador em caso de sucesso
+        session.reconnect_attempts = 0
+        session.save(update_fields=['reconnect_attempts'])
+        
+        return {
+            'success': True,
+            'session_id': session_id,
+            'status': result.get('status'),
+            'attempts': self.request.retries + 1
+        }
+    
+    except WhatsAppSession.DoesNotExist:
+        logger.error(f"[Reconnect] Sessão {session_id} não encontrada")
+        return {'success': False, 'error': 'not_found'}
+    
+    except Exception as e:
+        logger.error(
+            f"[Reconnect] Erro ao reconectar sessão {session_id} "
+            f"(tentativa {self.request.retries + 1}): {e}",
+            exc_info=True
+        )
+        
+        # Calcula delay com backoff exponencial
+        backoff_delays = [0, 30, 60, 120, 240, 480]  # segundos
+        delay = backoff_delays[min(self.request.retries, len(backoff_delays) - 1)]
+        
+        if self.request.retries < self.max_retries:
+            logger.info(f"[Reconnect] Reagendando reconexão em {delay}s")
+            raise self.retry(countdown=delay, exc=e)
+        else:
+            logger.error(
+                f"[Reconnect] Falha definitiva na reconexão da sessão {session_id} "
+                f"após {self.max_retries + 1} tentativas"
+            )
+            
+            # Marca sessão como erro permanente
+            try:
+                session = WhatsAppSession.objects.get(id=session_id)
+                session.mark_as_error(f"Falha na reconexão após {self.max_retries + 1} tentativas")
+            except Exception:
+                pass
+            
+            raise
+

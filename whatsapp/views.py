@@ -166,6 +166,117 @@ class WhatsAppSessionViewSet(viewsets.ModelViewSet):
         )
         
         return round((acceptable / total) * 100, 2)
+    
+    @extend_schema(
+        summary="Exportar sessão",
+        description="Exporta dados da sessão para backup (Issue #47)"
+    )
+    @action(detail=True, methods=['get'], url_path='export')
+    def export_session(self, request, pk=None):
+        """Exporta dados da sessão (backup)"""
+        import json
+        from django.http import HttpResponse
+        
+        session = self.get_object()
+        
+        export_data = {
+            'session_id': session.id,
+            'usuario_id': session.usuario_id,
+            'device_name': session.device_name,
+            'phone_number': session.phone_number,
+            'session_data': session.session_data,
+            'auto_reconnect': session.auto_reconnect,
+            'proxy_enabled': session.proxy_enabled,
+            'proxy_url': session.proxy_url,
+            'created_at': session.created_at.isoformat(),
+            'connected_at': session.connected_at.isoformat() if session.connected_at else None,
+            'export_timestamp': timezone.now().isoformat(),
+        }
+        
+        # Retorna como arquivo JSON
+        response = HttpResponse(
+            json.dumps(export_data, indent=2, ensure_ascii=False),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="whatsapp_session_{session.id}_backup.json"'
+        
+        logger.info(f"Sessão {session.id} exportada para backup")
+        
+        return response
+    
+    @extend_schema(
+        summary="Importar sessão",
+        description="Importa dados de sessão de um backup (Issue #47)"
+    )
+    @action(detail=False, methods=['post'], url_path='import')
+    def import_session(self, request):
+        """Importa dados de sessão de um backup"""
+        import json
+        
+        backup_data = request.data
+        
+        if not backup_data:
+            return Response(
+                {'error': 'Dados de backup não fornecidos'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Cria ou atualiza sessão
+            session, created = WhatsAppSession.objects.update_or_create(
+                usuario_id=request.user.id,
+                defaults={
+                    'device_name': backup_data.get('device_name', 'DX Connect Web'),
+                    'phone_number': backup_data.get('phone_number', ''),
+                    'session_data': backup_data.get('session_data', ''),
+                    'auto_reconnect': backup_data.get('auto_reconnect', True),
+                    'proxy_enabled': backup_data.get('proxy_enabled', False),
+                    'proxy_url': backup_data.get('proxy_url', ''),
+                    'status': 'disconnected',
+                    'is_active': True
+                }
+            )
+            
+            action = "criada" if created else "atualizada"
+            logger.info(f"Sessão {session.id} {action} a partir de backup")
+            
+            return Response({
+                'message': f'Sessão {action} com sucesso',
+                'session_id': session.id,
+                'created': created
+            }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"Erro ao importar sessão: {e}", exc_info=True)
+            return Response(
+                {'error': f'Erro ao importar sessão: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @extend_schema(
+        summary="Forçar reconexão",
+        description="Força uma tentativa de reconexão manual (Issue #47)"
+    )
+    @action(detail=True, methods=['post'], url_path='reconnect')
+    def force_reconnect(self, request, pk=None):
+        """Força reconexão da sessão"""
+        from whatsapp.tasks import auto_reconnect_session_task
+        
+        session = self.get_object()
+        
+        # Enfileira task de reconexão
+        task = auto_reconnect_session_task.apply_async(
+            kwargs={'session_id': session.id},
+            countdown=0
+        )
+        
+        logger.info(f"Reconexão forçada para sessão {session.id} (task: {task.id})")
+        
+        return Response({
+            'message': 'Reconexão iniciada',
+            'task_id': task.id,
+            'session_id': session.id
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class WhatsAppMessageViewSet(viewsets.ReadOnlyModelViewSet):
