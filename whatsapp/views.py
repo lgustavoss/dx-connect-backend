@@ -301,7 +301,14 @@ class WhatsAppSendMessageView(APIView):
         responses={202: WhatsAppMessageSerializer}
     )
     def post(self, request):
-        """Envia uma mensagem WhatsApp"""
+        """
+        Envia uma mensagem WhatsApp via fila (Issue #45).
+        
+        A mensagem é enfileirada para envio assíncrono com retentativas automáticas.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
         serializer = WhatsAppSendMessageSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -311,7 +318,6 @@ class WhatsAppSendMessageView(APIView):
             )
         
         data = serializer.validated_data
-        service = get_whatsapp_session_service()
         
         try:
             # Prepara payload
@@ -321,23 +327,38 @@ class WhatsAppSendMessageView(APIView):
                 'media_url': data.get('media_url', ''),
             }
             
-            result = async_to_sync(service.send_message)(
-                user_id=request.user.id,
-                to=data['to'],
-                payload=payload,
-                client_message_id=data.get('client_message_id')
+            client_message_id = data.get('client_message_id')
+            
+            # Enfileira mensagem para envio via Celery (Issue #45)
+            from whatsapp.tasks import send_whatsapp_message_task
+            
+            task = send_whatsapp_message_task.apply_async(
+                kwargs={
+                    'user_id': request.user.id,
+                    'to': data['to'],
+                    'payload': payload,
+                    'client_message_id': client_message_id
+                },
+                countdown=0  # Enviar imediatamente
             )
             
-            return Response(result, status=status.HTTP_202_ACCEPTED)
-        
-        except RuntimeError as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_423_LOCKED
+            logger.info(
+                f"Mensagem enfileirada para {data['to']} "
+                f"(task_id: {task.id}, user: {request.user.id})"
             )
+            
+            return Response({
+                'message': 'Mensagem enfileirada para envio',
+                'task_id': task.id,
+                'to': data['to'],
+                'client_message_id': client_message_id,
+                'status': 'queued'
+            }, status=status.HTTP_202_ACCEPTED)
+        
         except Exception as e:
+            logger.error(f"Erro ao enfileirar mensagem: {e}", exc_info=True)
             return Response(
-                {'error': f'Erro ao enviar mensagem: {str(e)}'},
+                {'error': f'Erro ao enfileirar mensagem: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
