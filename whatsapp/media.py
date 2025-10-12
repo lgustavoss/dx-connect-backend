@@ -197,6 +197,7 @@ class MediaFile(models.Model):
     )
     
     class Meta:
+        app_label = 'whatsapp'
         verbose_name = _("Arquivo de Mídia")
         verbose_name_plural = _("Arquivos de Mídia")
         ordering = ['-created_at']
