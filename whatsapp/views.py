@@ -641,3 +641,125 @@ class WhatsAppWebhookView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+class WhatsAppInjectIncomingView(APIView):
+    """
+    View para injetar mensagens de teste (apenas para desenvolvimento).
+    
+    Simula o recebimento de uma mensagem de um cliente, útil para:
+    - Testes de integração do frontend
+    - Desenvolvimento sem WhatsApp real
+    - Scripts de teste automatizados
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        summary="Injetar mensagem de teste",
+        description="Simula o recebimento de uma mensagem WhatsApp (apenas para testes)",
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'from': {
+                        'type': 'string',
+                        'description': 'Número do remetente',
+                        'example': '5511999999999'
+                    },
+                    'payload': {
+                        'type': 'object',
+                        'properties': {
+                            'type': {'type': 'string', 'example': 'text'},
+                            'text': {'type': 'string', 'example': 'Olá, preciso de ajuda!'},
+                            'contact_name': {'type': 'string', 'example': 'João Silva'}
+                        }
+                    }
+                },
+                'required': ['from', 'payload']
+            }
+        },
+        responses={200: WhatsAppMessageSerializer}
+    )
+    def post(self, request):
+        """
+        Injeta uma mensagem de entrada para testes.
+        
+        Esta view simula o recebimento de uma mensagem via WhatsApp,
+        útil para desenvolvimento e testes sem precisar de conexão real.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Validar dados
+        from_number = request.data.get('from')
+        payload = request.data.get('payload', {})
+        
+        if not from_number:
+            return Response(
+                {'error': 'Campo "from" é obrigatório'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not payload:
+            return Response(
+                {'error': 'Campo "payload" é obrigatório'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validar tipo de mensagem
+        msg_type = payload.get('type', 'text')
+        if msg_type not in ['text', 'image', 'audio', 'video', 'document']:
+            return Response(
+                {'error': f'Tipo de mensagem inválido: {msg_type}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Para mensagens de texto, validar que tem conteúdo
+        if msg_type == 'text' and not payload.get('text'):
+            return Response(
+                {'error': 'Campo "payload.text" é obrigatório para mensagens de texto'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            service = get_whatsapp_session_service()
+            chat_id = request.data.get('chat_id', from_number)
+            
+            # Processar mensagem via service (async)
+            message = async_to_sync(service.handle_incoming_message)(
+                user_id=request.user.id,
+                from_number=from_number,
+                chat_id=chat_id,
+                payload=payload
+            )
+            
+            logger.info(
+                f"Mensagem de teste injetada: {message.message_id} "
+                f"de {from_number} (user: {request.user.id})"
+            )
+            
+            # Serializar e retornar
+            from .serializers import WhatsAppMessageSerializer
+            serializer = WhatsAppMessageSerializer(message)
+            
+            return Response({
+                'message': 'Mensagem de teste injetada com sucesso',
+                'message_id': message.message_id,
+                'database_id': message.id,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        except RuntimeError as e:
+            if 'Sessão não encontrada' in str(e):
+                return Response(
+                    {'error': 'Sessão WhatsApp não encontrada. Inicie uma sessão primeiro.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            raise
+        
+        except Exception as e:
+            logger.error(f"Erro ao injetar mensagem de teste: {e}", exc_info=True)
+            return Response(
+                {'error': f'Erro ao injetar mensagem: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
