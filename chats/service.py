@@ -177,16 +177,26 @@ class ChatService:
             }
         }
         
-        # Enviar para grupo de atendentes
-        async_to_sync(channel_layer.group_send)(
-            'atendentes',
-            {
-                'type': 'chat.event',
-                **event_data
-            }
-        )
+        # Enviar para TODOS os usuários conectados via WhatsApp
+        # Como o usuário está no grupo user_{user_id}_whatsapp, enviamos via whatsapp_event
+        # que é o handler registrado no WhatsAppConsumer
         
-        logger.info(f"Evento 'new_chat' emitido para chat {atendimento.chat_id}")
+        # Buscar todos os atendentes do departamento para notificar
+        atendentes = atendimento.departamento.atendentes.all()
+        
+        for atendente in atendentes:
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f'user_{atendente.id}_whatsapp',
+                    {
+                        'type': 'whatsapp.event',
+                        'event': event_data
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Erro ao enviar evento para atendente {atendente.id}: {e}")
+        
+        logger.info(f"Evento 'new_chat' emitido para {atendentes.count()} atendentes do chat {atendimento.chat_id}")
     
     @staticmethod
     def _emit_new_message_event(atendimento: Atendimento, mensagem: WhatsAppMessage):
