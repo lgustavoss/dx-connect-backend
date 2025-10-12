@@ -76,6 +76,8 @@ urlpatterns = [
     path("api/v1/whatsapp/", include("whatsapp.urls")),
     # Atendimento (v1)
     path("api/v1/atendimento/", include("atendimento.urls")),
+    # Chats (v1)
+    path("api/v1/chats/", include("chats.urls")),
     # AuthZ (v1)
     path("api/v1/authz/permissions/", PermissionListView.as_view()),
     path("api/v1/authz/groups/", GroupListCreateView.as_view()),

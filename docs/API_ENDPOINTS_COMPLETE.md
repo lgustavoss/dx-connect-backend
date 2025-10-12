@@ -9,10 +9,11 @@
 ## 📑 Índice Rápido
 
 - [Autenticação](#autenticação) (3 endpoints)
-- [Clientes](#clientes) (15 endpoints)
+- [Clientes](#clientes) (16 endpoints)
 - [Contatos](#contatos) (6 endpoints)
 - [Documentos](#documentos) (8 endpoints)
-- [WhatsApp](#whatsapp) (18 endpoints)
+- [WhatsApp](#whatsapp) (19 endpoints)
+- [Chats](#chats) (6 endpoints)
 - [Atendimento](#atendimento) (15 endpoints)
 - [Notificações e Presença](#notificações-e-presença) (7 endpoints)
 - [Configurações](#configurações) (11 endpoints)
@@ -21,7 +22,7 @@
 - [WebSocket](#websocket) (2 conexões)
 - [Documentação](#documentação) (3 endpoints)
 
-**Total: 93 endpoints**
+**Total: 100 endpoints**
 
 ---
 
@@ -117,6 +118,19 @@
 | `POST` | `/api/v1/whatsapp/session/start` | Iniciar (legacy) | ✅ |
 | `POST` | `/api/v1/whatsapp/session` | Parar (legacy) | ✅ |
 | `GET` | `/api/v1/whatsapp/session/status` | Status (legacy) | ✅ |
+
+---
+
+## 💬 Chats
+
+| Método | Endpoint | Descrição | Auth |
+|--------|----------|-----------|------|
+| `GET` | `/api/v1/chats/` | Listar conversas | ✅ |
+| `GET` | `/api/v1/chats/{chat_id}/` | Detalhar conversa | ✅ |
+| `GET` | `/api/v1/chats/{chat_id}/messages/` | Mensagens do chat | ✅ |
+| `POST` | `/api/v1/chats/{chat_id}/aceitar/` | Aceitar atendimento | ✅ |
+| `POST` | `/api/v1/chats/{chat_id}/transferir/` | Transferir chat | ✅ |
+| `POST` | `/api/v1/chats/{chat_id}/encerrar/` | Encerrar chat | ✅ |
 
 ---
 
@@ -340,6 +354,6 @@ ws.onmessage = (e) => console.log(JSON.parse(e.data));
 
 **Versão**: v1  
 **Última Atualização**: 12/10/2025  
-**Total de Endpoints**: 93  
+**Total de Endpoints**: 100  
 **Status**: ✅ Produção
 

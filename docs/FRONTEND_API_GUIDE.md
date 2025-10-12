@@ -612,6 +612,144 @@ function ChatWhatsApp() {
 
 ---
 
+## 💬 Chats (Conversas)
+
+### Serviço de Chats
+
+```javascript
+// services/chats.js
+import apiClient from '../api/client';
+
+export const chatsService = {
+  // Listar conversas
+  listarChats: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.atendente) params.append('atendente', filters.atendente);
+    if (filters.sort) params.append('sort', filters.sort || 'lastMessage');
+    if (filters.order) params.append('order', filters.order || 'desc');
+    
+    const response = await apiClient.get(`/chats/?${params}`);
+    return response.data;
+  },
+  
+  // Detalhar conversa
+  detalharChat: async (chatId) => {
+    const response = await apiClient.get(`/chats/${chatId}/`);
+    return response.data;
+  },
+  
+  // Mensagens do chat (histórico isolado)
+  mensagensDoChat: async (chatId, limit = 50, offset = 0) => {
+    const response = await apiClient.get(
+      `/chats/${chatId}/messages/?limit=${limit}&offset=${offset}`
+    );
+    return response.data;
+  },
+  
+  // Aceitar atendimento
+  aceitarChat: async (chatId, observacoes = '') => {
+    const response = await apiClient.post(`/chats/${chatId}/aceitar/`, {
+      observacoes
+    });
+    return response.data;
+  },
+  
+  // Transferir chat
+  transferirChat: async (chatId, atendenteDestinoId, motivo) => {
+    const response = await apiClient.post(`/chats/${chatId}/transferir/`, {
+      atendente_destino_id: atendenteDestinoId,
+      motivo
+    });
+    return response.data;
+  },
+  
+  // Encerrar chat
+  encerrarChat: async (chatId, observacoes = '', solicitarAvaliacao = true) => {
+    const response = await apiClient.post(`/chats/${chatId}/encerrar/`, {
+      observacoes,
+      solicitar_avaliacao: solicitarAvaliacao
+    });
+    return response.data;
+  }
+};
+```
+
+### Hook React para Chats
+
+```javascript
+// hooks/useChats.js
+import { useState, useEffect } from 'react';
+import { chatsService } from '../services/chats';
+
+export function useChats(filters = {}) {
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const carregarChats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await chatsService.listarChats(filters);
+      setChats(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    carregarChats();
+  }, [JSON.stringify(filters)]);
+  
+  return { chats, loading, error, recarregar: carregarChats };
+}
+```
+
+### Hook para Mensagens do Chat
+
+```javascript
+// hooks/useChatMessages.js
+import { useState, useEffect } from 'react';
+import { chatsService } from '../services/chats';
+
+export function useChatMessages(chatId) {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  
+  const carregarMensagens = async (limit = 50, offset = 0) => {
+    try {
+      setLoading(true);
+      const data = await chatsService.mensagensDoChat(chatId, limit, offset);
+      setMessages(data.results);
+      setTotal(data.total);
+    } catch (err) {
+      console.error('Erro ao carregar mensagens:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (chatId) {
+      carregarMensagens();
+    }
+  }, [chatId]);
+  
+  const adicionarMensagem = (novaMensagem) => {
+    setMessages(prev => [novaMensagem, ...prev]);
+    setTotal(prev => prev + 1);
+  };
+  
+  return { messages, loading, total, recarregar: carregarMensagens, adicionarMensagem };
+}
+```
+
+---
+
 ## 🎫 Atendimento
 
 ### Serviço de Atendimento
@@ -759,14 +897,23 @@ export function handleApiError(error) {
 
 ## 🔗 Links Úteis
 
-- [Lista Completa de Endpoints](./API_ENDPOINTS_COMPLETE.md)
+### Documentação API
+- [Lista Completa de Endpoints](./API_ENDPOINTS_COMPLETE.md) - 100 endpoints
 - [Referência API Detalhada](./API_REFERENCE.md)
+- [API de Chats](./CHATS_API.md) - **NOVO** - Conversas e atendimento
+
+### Guias e Tutoriais
 - [Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)
 - [Eventos de Notificação](./NOTIFICATION_EVENTS.md)
+- [Issue #83 - Solução](./ISSUE_83_SOLUCAO.md) - Endpoint inject-incoming
+
+### Configuração
 - [Variáveis de Ambiente](./ENVIRONMENT_VARIABLES.md)
+- [Configuração CORS](./CORS_CONFIGURATION.md)
 
 ---
 
 **Versão**: v1  
-**Atualizado**: 12/10/2025
+**Atualizado**: 12/10/2025  
+**Issues Resolvidas**: #83, #85
 

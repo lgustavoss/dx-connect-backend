@@ -44,12 +44,19 @@
   - Métricas de latência
   - Reconexão automática
 
-- **[Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)** 🧪 **NOVO**
+- **[Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)** 🧪
   - Como testar sem WhatsApp real
   - Simular conversas completas
   - Injetar mensagens de teste
   - Classe JavaScript pronta
   - Troubleshooting
+
+- **[API de Chats](./CHATS_API.md)** 💬 **NOVO**
+  - Listagem de conversas agrupadas
+  - Histórico isolado por atendimento
+  - Auto-criação de atendimentos
+  - Aceitar, transferir e encerrar chats
+  - Alertas de novos chats
 
 ### Clientes e Documentos
 - **[Documentos e Contratos](./ISSUE_35_DOCUMENTOS.md)**
@@ -218,7 +225,8 @@ http://localhost:8001/api/docs/
 | [Frontend API Guide](./FRONTEND_API_GUIDE.md) | Guia prático com código React/Vue/JS | Frontend Dev (Setup completo) |
 | [Frontend Quickstart](./FRONTEND_QUICKSTART.md) | Início rápido em 5 minutos | Frontend Dev (Quick start) |
 | [API Reference](./API_REFERENCE.md) | Referência completa de endpoints | Todos |
-| [API Endpoints Complete](./API_ENDPOINTS_COMPLETE.md) | Lista de 93 endpoints | Referência rápida |
+| [API Endpoints Complete](./API_ENDPOINTS_COMPLETE.md) | Lista de 100 endpoints | Referência rápida |
+| [Chats API](./CHATS_API.md) | API de conversas e atendimento | Frontend Dev |
 | [WhatsApp Session Events](./WHATSAPP_SESSION_EVENTS.md) | Eventos e métricas WhatsApp | Frontend + Backend |
 | [WhatsApp Stub Testing](./WHATSAPP_STUB_TESTING.md) | Como testar sem WhatsApp real | QA + Frontend |
 | [Notification Events](./NOTIFICATION_EVENTS.md) | Protocolo WebSocket v1 | Frontend Dev |
@@ -229,9 +237,10 @@ http://localhost:8001/api/docs/
 | [Deploy Guide](./DEPLOY.md) | Deploy completo | DevOps |
 | [Post Deploy Checklist](./POST_DEPLOY_CHECKLIST.md) | Checklist pós-deploy | DevOps |
 | [Issue 35 - Documentos](./ISSUE_35_DOCUMENTOS.md) | Geração de contratos | Backend Dev |
+| [Issue 83 - Solução](./ISSUE_83_SOLUCAO.md) | Endpoint inject-incoming | Frontend Dev |
 | [Status do Projeto](./STATUS_PROJETO.md) | Status geral do projeto | PM + Tech Lead |
 
-**Total**: 15 documentos | **Páginas**: ~200 | **Exemplos de código**: 100+
+**Total**: 17 documentos | **Páginas**: ~250 | **Exemplos de código**: 120+
 
 ---
 
