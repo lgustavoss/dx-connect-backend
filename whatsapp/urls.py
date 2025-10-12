@@ -5,7 +5,8 @@ from .views import (
     WhatsAppSessionViewSet,
     WhatsAppMessageViewSet,
     WhatsAppSendMessageView,
-    WhatsAppWebhookView
+    WhatsAppWebhookView,
+    WhatsAppInjectIncomingView
 )
 
 router = DefaultRouter()
@@ -17,6 +18,8 @@ urlpatterns = [
     path('send/', WhatsAppSendMessageView.as_view(), name='whatsapp-send'),
     # Webhook para receber mensagens externas (Issue #44)
     path('webhook/', WhatsAppWebhookView.as_view(), name='whatsapp-webhook'),
+    # Injetar mensagem de teste (apenas desenvolvimento - Issue #83)
+    path('inject-incoming/', WhatsAppInjectIncomingView.as_view(), name='whatsapp-inject-incoming'),
     # Router endpoints
     path('', include(router.urls)),
 ]

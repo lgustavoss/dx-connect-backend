@@ -3,19 +3,30 @@
 ## 🎯 Para Desenvolvedores Frontend
 
 ### 🚀 Início Rápido
-1. **[Frontend Quickstart](./FRONTEND_QUICKSTART.md)** ⭐ **COMECE AQUI**
-   - Setup inicial
-   - Autenticação
-   - WebSocket
-   - Exemplos de código
+1. **[Frontend API Guide](./FRONTEND_API_GUIDE.md)** ⭐ **COMECE AQUI**
+   - Setup completo com React/Vue/JS
+   - Autenticação JWT + Refresh
+   - Exemplos de código prontos
+   - Hooks e serviços reutilizáveis
 
-2. **[API Reference](./API_REFERENCE.md)** 📘 **REFERÊNCIA COMPLETA**
-   - Todos os endpoints
+2. **[Frontend Quickstart](./FRONTEND_QUICKSTART.md)** 🏃 **GUIA RÁPIDO**
+   - Setup inicial em 5 minutos
+   - Conexão WebSocket
+   - Primeiro request
+
+3. **[API Reference](./API_REFERENCE.md)** 📘 **REFERÊNCIA COMPLETA**
+   - Todos os endpoints documentados
    - Exemplos de request/response
    - Códigos de status
    - Filtros e paginação
 
-3. **[WebSocket Events](./NOTIFICATION_EVENTS.md)** 🔌 **EVENTOS EM TEMPO REAL**
+4. **[Lista Completa de Endpoints](./API_ENDPOINTS_COMPLETE.md)** 📋 **ÍNDICE RÁPIDO**
+   - 93 endpoints organizados
+   - Tabela de referência rápida
+   - Indicadores de autenticação
+   - Quick start examples
+
+5. **[WebSocket Events](./NOTIFICATION_EVENTS.md)** 🔌 **EVENTOS EM TEMPO REAL**
    - Protocolo de eventos v1
    - Payloads completos
    - Preferências de notificação
@@ -32,6 +43,13 @@
   - Processamento de mídias
   - Métricas de latência
   - Reconexão automática
+
+- **[Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)** 🧪 **NOVO**
+  - Como testar sem WhatsApp real
+  - Simular conversas completas
+  - Injetar mensagens de teste
+  - Classe JavaScript pronta
+  - Troubleshooting
 
 ### Clientes e Documentos
 - **[Documentos e Contratos](./ISSUE_35_DOCUMENTOS.md)**
@@ -191,6 +209,33 @@ http://localhost:8001/api/docs/
 
 ---
 
+---
+
+## 📦 Documentos Disponíveis
+
+| Documento | Descrição | Ideal Para |
+|-----------|-----------|------------|
+| [Frontend API Guide](./FRONTEND_API_GUIDE.md) | Guia prático com código React/Vue/JS | Frontend Dev (Setup completo) |
+| [Frontend Quickstart](./FRONTEND_QUICKSTART.md) | Início rápido em 5 minutos | Frontend Dev (Quick start) |
+| [API Reference](./API_REFERENCE.md) | Referência completa de endpoints | Todos |
+| [API Endpoints Complete](./API_ENDPOINTS_COMPLETE.md) | Lista de 93 endpoints | Referência rápida |
+| [WhatsApp Session Events](./WHATSAPP_SESSION_EVENTS.md) | Eventos e métricas WhatsApp | Frontend + Backend |
+| [WhatsApp Stub Testing](./WHATSAPP_STUB_TESTING.md) | Como testar sem WhatsApp real | QA + Frontend |
+| [Notification Events](./NOTIFICATION_EVENTS.md) | Protocolo WebSocket v1 | Frontend Dev |
+| [CEP Integration](./CEP_INTEGRATION.md) | Integração ViaCEP | Frontend + Backend |
+| [CORS Configuration](./CORS_CONFIGURATION.md) | Setup CORS | DevOps |
+| [Environment Variables](./ENVIRONMENT_VARIABLES.md) | Variáveis de ambiente | DevOps |
+| [Quick Deploy Guide](./QUICK_DEPLOY_GUIDE.md) | Deploy em 10 minutos | DevOps |
+| [Deploy Guide](./DEPLOY.md) | Deploy completo | DevOps |
+| [Post Deploy Checklist](./POST_DEPLOY_CHECKLIST.md) | Checklist pós-deploy | DevOps |
+| [Issue 35 - Documentos](./ISSUE_35_DOCUMENTOS.md) | Geração de contratos | Backend Dev |
+| [Status do Projeto](./STATUS_PROJETO.md) | Status geral do projeto | PM + Tech Lead |
+
+**Total**: 15 documentos | **Páginas**: ~200 | **Exemplos de código**: 100+
+
+---
+
 **Última Atualização**: 12 de Outubro de 2025  
 **Versão da API**: v1  
-**Sprint Atual**: Sprint 4 (Qualidade)
+**Sprint Atual**: Sprint 4 (Qualidade)  
+**Documentação**: ✅ 100% Atualizada

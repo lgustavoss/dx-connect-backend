@@ -94,8 +94,30 @@ Query Params:
 - status: ativo, inativo, suspenso
 - tipo_pessoa: fisica, juridica
 - search: busca por nome, CNPJ/CPF, email
-- ordering: razao_social, created_at, -updated_at
+- ordering: razao_social, criado_em, -atualizado_em
 ```
+
+**Resposta:**
+```json
+{
+  "count": 100,
+  "results": [
+    {
+      "id": 1,
+      "razao_social": "Empresa XYZ Ltda",
+      "nome_fantasia": "XYZ",
+      "tipo_pessoa": "juridica",
+      "cnpj": "12345678000190",
+      "status": "ativo",
+      "email_principal": "contato@xyz.com.br",
+      "telefone_principal": "11999999999",
+      "criado_em": "2025-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
 
 ### Criar Cliente
 ```http
@@ -107,9 +129,9 @@ Content-Type: application/json
   "razao_social": "Empresa XYZ Ltda",
   "nome_fantasia": "XYZ",
   "tipo_pessoa": "juridica",
-  "cnpj_cpf": "12345678000190",
-  "email": "contato@xyz.com.br",
-  "telefone": "11999999999",
+  "cnpj": "12345678000190",
+  "email_principal": "contato@xyz.com.br",
+  "telefone_principal": "11999999999",
   "endereco": "Rua das Flores, 123",
   "numero": "123",
   "bairro": "Centro",
@@ -118,6 +140,176 @@ Content-Type: application/json
   "cep": "01234-567"
 }
 ```
+
+---
+
+### Detalhar Cliente
+```http
+GET /api/v1/clientes/{id}/
+Authorization: Bearer {token}
+```
+
+---
+
+### Atualizar Cliente
+```http
+PUT /api/v1/clientes/{id}/        # Atualização completa
+PATCH /api/v1/clientes/{id}/      # Atualização parcial
+Authorization: Bearer {token}
+
+{
+  "telefone_principal": "11988887777",
+  "email_principal": "novo@xyz.com.br"
+}
+```
+
+---
+
+### Buscar Clientes
+```http
+GET /api/v1/clientes/search/?q={termo}
+Authorization: Bearer {token}
+```
+
+Busca por razão social, nome fantasia, CNPJ ou email.
+
+---
+
+### Listar por Status
+```http
+GET /api/v1/clientes/status/{status}/
+Authorization: Bearer {token}
+```
+
+Status: `ativo`, `inativo`, `suspenso`
+
+---
+
+### Alterar Status
+```http
+PATCH /api/v1/clientes/{id}/status/
+Authorization: Bearer {token}
+
+{
+  "status": "suspenso",
+  "motivo": "Inadimplência"
+}
+```
+
+---
+
+### Estatísticas
+```http
+GET /api/v1/clientes/stats/
+Authorization: Bearer {token}
+```
+
+**Resposta:**
+```json
+{
+  "total": 150,
+  "ativos": 120,
+  "inativos": 20,
+  "suspensos": 10,
+  "pessoa_fisica": 80,
+  "pessoa_juridica": 70
+}
+```
+
+---
+
+### Grupos de Empresa
+
+#### Listar Grupos
+```http
+GET /api/v1/grupos-empresa/
+Authorization: Bearer {token}
+```
+
+#### Criar Grupo
+```http
+POST /api/v1/grupos-empresa/
+Authorization: Bearer {token}
+
+{
+  "nome": "Grupo Comercial ABC",
+  "descricao": "Empresas do grupo comercial",
+  "empresa_principal": 1
+}
+```
+
+---
+
+### Integração com Chat (Acesso Público)
+
+#### Buscar Contato por Número
+```http
+POST /api/v1/clientes/chat/buscar-contato/
+Content-Type: application/json
+
+{
+  "numero": "5511999999999"
+}
+```
+
+**Resposta:**
+```json
+{
+  "encontrado": true,
+  "cliente": {
+    "id": 1,
+    "razao_social": "Empresa XYZ",
+    "status": "ativo"
+  },
+  "contato": {
+    "id": 5,
+    "nome": "João Silva",
+    "email": "joao@xyz.com.br"
+  }
+}
+```
+
+#### Salvar Dados Capturados no Chat
+```http
+POST /api/v1/clientes/chat/dados-capturados/
+Content-Type: application/json
+
+{
+  "numero_whatsapp": "5511999999999",
+  "nome": "Maria Santos",
+  "email": "maria@example.com",
+  "mensagem_inicial": "Preciso de informações"
+}
+```
+
+---
+
+### Cadastro Manual pelo Atendente
+
+```http
+POST /api/v1/clientes/cadastro-manual/
+Authorization: Bearer {token}
+
+{
+  "razao_social": "Nova Empresa",
+  "nome_fantasia": "NE",
+  "tipo_pessoa": "juridica",
+  "cnpj": "98765432000100",
+  "email_principal": "contato@ne.com.br",
+  "telefone_principal": "11988776655",
+  "contatos": [
+    {
+      "nome": "Pedro Oliveira",
+      "cargo": "Diretor",
+      "email": "pedro@ne.com.br",
+      "telefone": "11977665544",
+      "is_principal": true
+    }
+  ]
+}
+```
+
+---
 
 ### Buscar por CEP
 ```http
@@ -132,7 +324,8 @@ GET /api/v1/integrations/cep/01001-000/
   "complemento": "lado ímpar",
   "bairro": "Sé",
   "cidade": "São Paulo",
-  "estado": "SP"
+  "estado": "SP",
+  "cached": false
 }
 ```
 
@@ -279,6 +472,46 @@ GET /api/v1/whatsapp/sessions/{id}/metrics/
 Authorization: Bearer {token}
 ```
 
+#### Listar Sessões
+```http
+GET /api/v1/whatsapp/sessions/
+Authorization: Bearer {token}
+
+Query Params:
+- status: disconnected, connecting, qrcode, authenticated, ready, error
+- is_active: true, false
+- search: busca por número de telefone ou dispositivo
+- ordering: created_at, updated_at, -connected_at
+```
+
+**Resposta:**
+```json
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 1,
+      "usuario": 1,
+      "usuario_nome": "admin",
+      "status": "ready",
+      "phone_number": "5511999999999",
+      "device_name": "DX Connect Web",
+      "is_connected": true,
+      "total_messages_sent": 150,
+      "total_messages_received": 230,
+      "last_message_at": "2025-10-11T10:30:00Z",
+      "uptime_seconds": 3600
+    }
+  ]
+}
+```
+
+#### Detalhar Sessão
+```http
+GET /api/v1/whatsapp/sessions/{id}/
+Authorization: Bearer {token}
+```
+
 #### Exportar Sessão (Backup)
 ```http
 GET /api/v1/whatsapp/sessions/{id}/export/
@@ -303,6 +536,15 @@ Authorization: Bearer {token}
 ```http
 POST /api/v1/whatsapp/sessions/{id}/reconnect/
 Authorization: Bearer {token}
+```
+
+**Resposta:**
+```json
+{
+  "message": "Reconexão iniciada",
+  "session_id": 1,
+  "status": "connecting"
+}
 ```
 
 ---
@@ -352,8 +594,64 @@ Authorization: Bearer {token}
 Query Params:
 - direction: inbound, outbound
 - message_type: text, image, audio, video, document
-- status: queued, sent, delivered, read
+- status: queued, sent, delivered, read, error
 - chat_id: filtrar por chat
+- session: filtrar por sessão (ID)
+- search: buscar em conteúdo, número ou nome do contato
+- ordering: created_at, -sent_at, -delivered_at
+```
+
+**Resposta:**
+```json
+{
+  "count": 380,
+  "results": [
+    {
+      "id": 1,
+      "message_id": "msg_abc123",
+      "direction": "outbound",
+      "message_type": "text",
+      "contact_number": "5511988888888",
+      "contact_name": "João Silva",
+      "text_content": "Olá! Como posso ajudar?",
+      "status": "read",
+      "created_at": "2025-10-11T10:00:00Z",
+      "sent_at": "2025-10-11T10:00:01.230Z",
+      "total_latency_ms": 1230,
+      "is_latency_acceptable": true
+    }
+  ]
+}
+```
+
+#### Detalhar Mensagem
+```http
+GET /api/v1/whatsapp/messages/{id}/
+Authorization: Bearer {token}
+```
+
+#### Mensagens com Alta Latência
+```http
+GET /api/v1/whatsapp/messages/high-latency/
+Authorization: Bearer {token}
+```
+
+Lista mensagens que excederam o limite de 5 segundos.
+
+**Resposta:**
+```json
+[
+  {
+    "id": 1,
+    "message_id": "msg_slow",
+    "direction": "outbound",
+    "contact_number": "5511999999999",
+    "text_content": "Mensagem lenta",
+    "status": "sent",
+    "total_latency_ms": 7230,
+    "is_latency_acceptable": false
+  }
+]
 ```
 
 #### Estatísticas de Latência
@@ -366,7 +664,10 @@ Authorization: Bearer {token}
 ```json
 {
   "total_messages": 380,
+  "outbound_messages": 150,
+  "inbound_messages": 230,
   "avg_latency_to_sent_ms": 1250.5,
+  "avg_latency_to_delivered_ms": 2180.3,
   "messages_over_5s": 3,
   "latency_acceptable_rate": 98.0
 }
@@ -388,6 +689,49 @@ Content-Type: application/json
   "version": "v1"
 }
 ```
+
+#### Injetar Mensagem de Teste (Desenvolvimento)
+```http
+POST /api/v1/whatsapp/inject-incoming/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "from": "5511999999999",
+  "chat_id": "5511999999999",
+  "payload": {
+    "type": "text",
+    "text": "Olá, preciso de ajuda!",
+    "contact_name": "João Silva"
+  }
+}
+```
+
+**Resposta:**
+```json
+{
+  "message": "Mensagem de teste injetada com sucesso",
+  "message_id": "msg_abc123",
+  "database_id": 42,
+  "data": {
+    "id": 42,
+    "message_id": "msg_abc123",
+    "direction": "inbound",
+    "message_type": "text",
+    "contact_number": "5511999999999",
+    "contact_name": "João Silva",
+    "text_content": "Olá, preciso de ajuda!",
+    "status": "delivered",
+    "created_at": "2025-10-12T10:00:00Z"
+  }
+}
+```
+
+**Uso**: Simula o recebimento de uma mensagem WhatsApp. Útil para:
+- Testes de integração do frontend
+- Desenvolvimento sem WhatsApp real
+- Scripts de teste automatizados
+- Testes com Postman/Insomnia
 
 ---
 
@@ -820,6 +1164,93 @@ ws.onmessage = (event) => {
 
 ---
 
-**Atualizado em**: 12 de Outubro de 2025
-**Versão da API**: v1
+---
+
+## 📡 Endpoints Adicionais
+
+### Permissões e Grupos (AuthZ)
+
+#### Listar Permissões
+```http
+GET /api/v1/authz/permissions/
+Authorization: Bearer {token}
+```
+
+#### Listar Grupos
+```http
+GET /api/v1/authz/groups/
+Authorization: Bearer {token}
+```
+
+#### Criar Grupo
+```http
+POST /api/v1/authz/groups/
+Authorization: Bearer {token}
+
+{
+  "name": "Supervisores",
+  "permissions": [1, 2, 3, 5, 8]
+}
+```
+
+#### Grupos de um Agente
+```http
+GET /api/v1/authz/agents/{agent_id}/groups/
+Authorization: Bearer {token}
+```
+
+---
+
+### Health Check
+
+```http
+GET /api/v1/health/
+```
+
+**Resposta:**
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
+## 🎨 Configurações de Aparência
+
+### Obter Configurações
+```http
+GET /api/v1/config/appearance/
+Authorization: Bearer {token}
+```
+
+### Atualizar Configurações
+```http
+PATCH /api/v1/config/appearance/
+Authorization: Bearer {token}
+
+{
+  "logo_url": "https://example.com/logo.png",
+  "primary_color": "#3B82F6",
+  "secondary_color": "#10B981"
+}
+```
+
+### Upload de Logo/Imagens
+```http
+POST /api/v1/config/appearance/upload/
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+{
+  "file": <arquivo>,
+  "type": "logo"
+}
+```
+
+---
+
+**Atualizado em**: 12 de Outubro de 2025  
+**Versão da API**: v1  
+**Total de Endpoints**: 80+
 
