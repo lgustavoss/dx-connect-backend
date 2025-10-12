@@ -21,6 +21,7 @@ from accounts.views import (
     PermissionListView,
 )
 from accounts.views_preferences import PreferenciasNotificacaoView
+from accounts.views_presence import AgentPresenceViewSet, TypingIndicatorView
 from clientes.urls import urlpatterns as clientes_urls
 from django.conf import settings
 from django.conf.urls.static import static
@@ -53,6 +54,11 @@ urlpatterns = [
     path("api/v1/me/", me_view),
     # Preferências de Notificação (v1)
     path("api/v1/me/preferencias-notificacao/", PreferenciasNotificacaoView.as_view(), name="preferencias-notificacao"),
+    # Presença de Agentes (v1)
+    path("api/v1/presence/me/", AgentPresenceViewSet.as_view({'get': 'my_presence'}), name="my-presence"),
+    path("api/v1/presence/set-status/", AgentPresenceViewSet.as_view({'post': 'set_status'}), name="set-status"),
+    path("api/v1/presence/heartbeat/", AgentPresenceViewSet.as_view({'post': 'heartbeat'}), name="heartbeat"),
+    path("api/v1/typing/", TypingIndicatorView.as_view(), name="typing"),
     # Config (v1)
     path("api/v1/config/", ConfigView.as_view()),
     path("api/v1/config/company/", CompanyConfigView.as_view()),
