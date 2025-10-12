@@ -1,8 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# Importar modelo de preferências
+# Importar modelos de preferências e presença
 from .models_preferences import PreferenciasNotificacao
+from .models_presence import AgentPresence, TypingIndicator
 
 
 class Agent(AbstractUser):
