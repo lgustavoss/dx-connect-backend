@@ -87,12 +87,19 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                     payload=payload
                 )
                 
-                logger.info(f"Mensagem injetada: {message.message_id}")
+                logger.info(f"Mensagem injetada via WebSocket: {message.message_id}")
+                
+                # Processar nova conversa (Issue #85/#87)
+                from chats.service import get_chat_service
+                from asgiref.sync import sync_to_async
+                chat_service = get_chat_service()
+                await sync_to_async(chat_service.processar_nova_mensagem_recebida)(message)
                 
                 # Envia confirmação
                 await self.send_json({
                     "type": "inject_success",
-                    "message_id": message.message_id
+                    "message_id": message.message_id,
+                    "chat_id": chat_id
                 })
             except Exception as e:
                 logger.error(f"Erro ao injetar mensagem: {e}", exc_info=True)
