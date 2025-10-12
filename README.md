@@ -8,8 +8,63 @@ API backend para o sistema de gestão e atendimento ao cliente DX Connect.
 - **Framework:** Django 4.2+
 - **API Framework:** Django REST Framework (DRF)
 - **Database:** PostgreSQL
+- **Cache/Queue:** Redis + Celery
+- **WebSocket:** Django Channels
 - **Authentication:** JWT (Simple JWT)
 - **Container:** Docker
+
+## ✨ Funcionalidades Principais
+
+### 📱 WhatsApp Web Integration
+- ✅ Sessões WhatsApp com QR Code
+- ✅ Envio/Recebimento de mensagens (texto, imagem, áudio, vídeo)
+- ✅ Processamento automático de mídias (thumbnails, conversão)
+- ✅ Reconexão automática com backoff
+- ✅ Fila de envio com retentativas
+- ✅ Métricas de latência (<5s)
+
+### 🎫 Sistema de Atendimento
+- ✅ Filas por departamento
+- ✅ Distribuição automática inteligente
+- ✅ Transferência entre atendentes
+- ✅ Encerramento automático por inatividade
+- ✅ Avaliação de atendimentos
+- ✅ Histórico completo com auditoria
+
+### 🔔 Notificações em Tempo Real
+- ✅ WebSocket com eventos padronizados
+- ✅ Preferências personalizáveis (sons, desktop, badges)
+- ✅ Modo não perturbe com horários
+- ✅ Indicadores de digitação
+- ✅ Presença de agentes (online/offline/busy)
+
+### 👥 Gestão de Clientes
+- ✅ CRUD completo de clientes
+- ✅ Contatos vinculados
+- ✅ Grupos de empresa
+- ✅ Documentos e contratos
+- ✅ Geração automática de contratos/boletos
+- ✅ Integração com API de CEP
+
+---
+
+## 📚 Documentação para Frontend
+
+### 🎯 **Comece Aqui:**
+- 📘 **[API Reference](docs/API_REFERENCE.md)** - Todos os endpoints disponíveis
+- 🚀 **[Frontend Quickstart](docs/FRONTEND_QUICKSTART.md)** - Guia rápido de integração
+- 🔌 **[WebSocket Events](docs/NOTIFICATION_EVENTS.md)** - Eventos em tempo real
+
+### 📖 **Guias Detalhados:**
+- 💬 **[WhatsApp - Sessões e Eventos](docs/WHATSAPP_SESSION_EVENTS.md)**
+- 📍 **[Integração CEP](docs/CEP_INTEGRATION.md)**
+- 🔒 **[Configuração CORS](docs/CORS_CONFIGURATION.md)**
+- ⚙️ **[Variáveis de Ambiente](docs/ENVIRONMENT_VARIABLES.md)**
+
+### 🧪 **APIs Interativas:**
+- **Swagger UI**: http://localhost:8001/api/docs/
+- **ReDoc**: http://localhost:8001/api/redoc/
+- **Schema JSON**: http://localhost:8001/api/schema/
 
 ## 🚀 Como Executar
 
