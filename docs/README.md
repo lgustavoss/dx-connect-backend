@@ -44,12 +44,19 @@
   - Métricas de latência
   - Reconexão automática
 
-- **[Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)** 🧪 **NOVO**
+- **[Guia de Testes com Stub](./WHATSAPP_STUB_TESTING.md)** 🧪
   - Como testar sem WhatsApp real
   - Simular conversas completas
   - Injetar mensagens de teste
   - Classe JavaScript pronta
   - Troubleshooting
+
+- **[API de Chats](./CHATS_API.md)** 💬 **NOVO**
+  - Listagem de conversas agrupadas
+  - Histórico isolado por atendimento
+  - Auto-criação de atendimentos
+  - Aceitar, transferir e encerrar chats
+  - Alertas de novos chats
 
 ### Clientes e Documentos
 - **[Documentos e Contratos](./ISSUE_35_DOCUMENTOS.md)**

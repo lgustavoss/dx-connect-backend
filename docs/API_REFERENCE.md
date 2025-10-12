@@ -21,10 +21,12 @@ Backend API para sistema de gestão e atendimento ao cliente DX Connect.
 3. [Contatos](#contatos)
 4. [Documentos](#documentos)
 5. [WhatsApp](#whatsapp)
-6. [Atendimento](#atendimento)
-7. [Configurações](#configurações)
-8. [Integrações](#integrações)
-9. [WebSocket](#websocket)
+6. [Chats (Conversas)](#chats-conversas)
+7. [Atendimento](#atendimento)
+8. [Notificações e Presença](#notificações-e-presença)
+9. [Configurações](#configurações)
+10. [Integrações](#integrações)
+11. [WebSocket](#websocket)
 
 ---
 
@@ -732,6 +734,88 @@ Content-Type: application/json
 - Desenvolvimento sem WhatsApp real
 - Scripts de teste automatizados
 - Testes com Postman/Insomnia
+
+---
+
+## 💬 Chats (Conversas)
+
+### Base URL
+`/api/v1/chats/`
+
+### Listar Chats
+```http
+GET /api/v1/chats/
+Authorization: Bearer {token}
+
+Query Params:
+- status: aguardando, em_atendimento, pausado, finalizado
+- atendente: ID do atendente
+- departamento: ID do departamento
+- sort: lastMessage, priority, created
+- order: asc, desc
+```
+
+**Resposta:**
+```json
+[
+  {
+    "chat_id": "5511999999999",
+    "cliente_nome": "João Silva Ltda",
+    "status": "em_atendimento",
+    "atendente_nome": "Maria",
+    "ultima_mensagem_texto": "Preciso de ajuda!",
+    "ultima_mensagem_em": "2025-10-12T15:30:00Z",
+    "mensagens_nao_lidas": 3,
+    "total_mensagens": 15
+  }
+]
+```
+
+### Detalhar Chat
+```http
+GET /api/v1/chats/{chat_id}/
+Authorization: Bearer {token}
+```
+
+### Mensagens do Chat
+```http
+GET /api/v1/chats/{chat_id}/messages/?limit=50&offset=0
+Authorization: Bearer {token}
+```
+
+**Retorna apenas mensagens do atendimento atual (histórico isolado).**
+
+### Aceitar Chat
+```http
+POST /api/v1/chats/{chat_id}/aceitar/
+Authorization: Bearer {token}
+
+{
+  "observacoes": "Cliente urgente"
+}
+```
+
+### Transferir Chat
+```http
+POST /api/v1/chats/{chat_id}/transferir/
+Authorization: Bearer {token}
+
+{
+  "atendente_destino_id": 8,
+  "motivo": "Especialista necessário"
+}
+```
+
+### Encerrar Chat
+```http
+POST /api/v1/chats/{chat_id}/encerrar/
+Authorization: Bearer {token}
+
+{
+  "observacoes": "Resolvido",
+  "solicitar_avaliacao": true
+}
+```
 
 ---
 

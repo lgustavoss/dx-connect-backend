@@ -630,6 +630,11 @@ class WhatsAppWebhookView(APIView):
                     {"type": "whatsapp.event", "event": event_payload}
                 )
             
+            # Processar nova conversa (Issue #85)
+            from chats.service import get_chat_service
+            chat_service = get_chat_service()
+            chat_service.processar_nova_mensagem_recebida(message)
+            
             # Retorna mensagem criada
             serializer = WhatsAppMessageSerializer(message)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -736,6 +741,11 @@ class WhatsAppInjectIncomingView(APIView):
                 f"Mensagem de teste injetada: {message.message_id} "
                 f"de {from_number} (user: {request.user.id})"
             )
+            
+            # Processar nova conversa (Issue #85)
+            from chats.service import get_chat_service
+            chat_service = get_chat_service()
+            chat_service.processar_nova_mensagem_recebida(message)
             
             # Serializar e retornar
             from .serializers import WhatsAppMessageSerializer
