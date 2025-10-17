@@ -785,6 +785,38 @@ Authorization: Bearer {token}
 
 **Retorna apenas mensagens do atendimento atual (histórico isolado).**
 
+### Assumir Chat (Agentes)
+```http
+POST /api/v1/chats/{chat_id}/attend/
+Authorization: Bearer {token}
+
+Body: (opcional)
+{}
+```
+
+**Permite que agentes assumam chats que estão aguardando atendimento.**
+
+**Pré-condições:**
+- Chat deve existir no sistema
+- Chat deve estar com status "aguardando" ou "pending"
+- Usuário deve estar autenticado e ser um agente válido
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "message": "Chat atendido com sucesso",
+  "chat_id": "5511999887766",
+  "assigned_agent": 9,
+  "status": "em_atendimento",
+  "assigned_at": "2024-01-15T10:30:00Z"
+}
+```
+
+**Respostas de Erro:**
+- **404**: Chat não encontrado
+- **400**: Chat não está disponível para atendimento
+- **401**: Token inválido ou expirado
+
 ### Aceitar Chat
 ```http
 POST /api/v1/chats/{chat_id}/aceitar/

@@ -647,6 +647,12 @@ export const chatsService = {
     return response.data;
   },
   
+  // Assumir chat (para agentes)
+  assumirChat: async (chatId) => {
+    const response = await apiClient.post(`/chats/${chatId}/attend/`);
+    return response.data;
+  },
+  
   // Aceitar atendimento
   aceitarChat: async (chatId, observacoes = '') => {
     const response = await apiClient.post(`/chats/${chatId}/aceitar/`, {
@@ -704,7 +710,18 @@ export function useChats(filters = {}) {
     carregarChats();
   }, [JSON.stringify(filters)]);
   
-  return { chats, loading, error, recarregar: carregarChats };
+  const assumirChat = async (chatId) => {
+    try {
+      const resultado = await chatsService.assumirChat(chatId);
+      await carregarChats(); // Recarregar lista após assumir
+      return resultado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+  
+  return { chats, loading, error, recarregar: carregarChats, assumirChat };
 }
 ```
 

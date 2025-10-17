@@ -13,7 +13,7 @@
 - [Contatos](#contatos) (6 endpoints)
 - [Documentos](#documentos) (8 endpoints)
 - [WhatsApp](#whatsapp) (19 endpoints)
-- [Chats](#chats) (6 endpoints)
+- [Chats](#chats) (7 endpoints)
 - [Atendimento](#atendimento) (15 endpoints)
 - [Notificações e Presença](#notificações-e-presença) (7 endpoints)
 - [Configurações](#configurações) (11 endpoints)
@@ -22,7 +22,7 @@
 - [WebSocket](#websocket) (2 conexões)
 - [Documentação](#documentação) (3 endpoints)
 
-**Total: 100 endpoints**
+**Total: 101 endpoints**
 
 ---
 
@@ -128,6 +128,7 @@
 | `GET` | `/api/v1/chats/` | Listar conversas | ✅ |
 | `GET` | `/api/v1/chats/{chat_id}/` | Detalhar conversa | ✅ |
 | `GET` | `/api/v1/chats/{chat_id}/messages/` | Mensagens do chat | ✅ |
+| `POST` | `/api/v1/chats/{chat_id}/attend/` | Assumir chat (agentes) | ✅ |
 | `POST` | `/api/v1/chats/{chat_id}/aceitar/` | Aceitar atendimento | ✅ |
 | `POST` | `/api/v1/chats/{chat_id}/transferir/` | Transferir chat | ✅ |
 | `POST` | `/api/v1/chats/{chat_id}/encerrar/` | Encerrar chat | ✅ |

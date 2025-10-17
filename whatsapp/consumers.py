@@ -95,12 +95,54 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                 chat_service = get_chat_service()
                 await sync_to_async(chat_service.processar_nova_mensagem_recebida)(message)
                 
-                # Envia confirmação
-                await self.send_json({
-                    "type": "inject_success",
-                    "message_id": message.message_id,
-                    "chat_id": chat_id
-                })
+                # Emitir evento message_received para todos os clientes conectados
+                # (broadcast via channel layer)
+                from channels.layers import get_channel_layer
+                channel_layer = get_channel_layer()
+                
+                if channel_layer:
+                    # Buscar atendimento criado para pegar dados completos
+                    from atendimento.models import Atendimento
+                    atendimento = await sync_to_async(
+                        lambda: Atendimento.objects.filter(chat_id=chat_id).first()
+                    )()
+                    
+                    event_payload = {
+                        "type": "message_received",
+                        "message_id": message.message_id,
+                        "from": from_number,
+                        "chat_id": chat_id,
+                        "payload": {
+                            "type": payload.get("type", "text"),
+                            "text": payload.get("text", ""),
+                            "contact_name": payload.get("contact_name", from_number),
+                            "message_id": message.message_id
+                        },
+                        "message": {
+                            "id": message.id,
+                            "message_id": message.message_id,
+                            "chatId": chat_id,
+                            "atendimento_id": atendimento.id if atendimento else None,
+                            "content": payload.get("text", ""),
+                            "type": payload.get("type", "text"),
+                            "from": from_number,
+                            "contactName": payload.get("contact_name", from_number),
+                            "isFromCustomer": True,
+                            "status": message.status,
+                            "createdAt": message.created_at.isoformat()
+                        }
+                    }
+                    
+                    # Broadcast para todos os usuários conectados
+                    await channel_layer.group_send(
+                        f'user_{self.user_id}_whatsapp',
+                        {
+                            'type': 'whatsapp.event',
+                            'event': event_payload
+                        }
+                    )
+                    
+                    logger.info(f"Evento message_received emitido via broadcast para user_{self.user_id}")
             except Exception as e:
                 logger.error(f"Erro ao injetar mensagem: {e}", exc_info=True)
                 await self.send_json({

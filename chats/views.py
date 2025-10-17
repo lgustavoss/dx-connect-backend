@@ -38,6 +38,7 @@ class ChatViewSet(viewsets.ViewSet):
     - GET /chats/ - Lista todos os chats
     - GET /chats/{chat_id}/ - Detalhes de um chat
     - GET /chats/{chat_id}/messages/ - Mensagens do chat
+    - POST /chats/{chat_id}/attend/ - Assumir chat (agentes)
     - POST /chats/{chat_id}/aceitar/ - Aceitar atendimento
     - POST /chats/{chat_id}/transferir/ - Transferir para outro atendente
     - POST /chats/{chat_id}/encerrar/ - Encerrar atendimento
@@ -239,6 +240,98 @@ class ChatViewSet(viewsets.ViewSet):
             'offset': offset,
             'results': serializer.data
         })
+    
+    @action(detail=True, methods=['post'], url_path='attend')
+    def attend(self, request, pk=None):
+        """
+        Permite que agentes assumam chats que estão aguardando atendimento.
+        
+        Este endpoint permite que um agente autenticado assuma um chat pendente,
+        alterando seu status para "active" e atribuindo-o ao agente.
+        
+        Não requer body (opcional).
+        """
+        # Buscar o chat pelo chat_id
+        try:
+            atendimento = Atendimento.objects.select_related(
+                'atendente', 'departamento'
+            ).get(chat_id=pk)
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verificar se o chat está disponível para atendimento
+        if atendimento.status not in ['aguardando', 'pending']:
+            return Response(
+                {
+                    'error': 'Chat não está disponível para atendimento',
+                    'current_status': atendimento.status
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Verificar se o usuário é um agente válido
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Token inválido ou expirado'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Verificar se o agente já está ativo (não pode assumir múltiplos chats simultaneamente)
+        # Isso é opcional, mas pode ser uma boa prática de negócio
+        atendimentos_ativos = Atendimento.objects.filter(
+            atendente=request.user,
+            status='em_atendimento'
+        ).count()
+        
+        if atendimentos_ativos > 0:
+            logger.warning(
+                f"Agente {request.user.username} tentou assumir chat {pk} "
+                f"mas já tem {atendimentos_ativos} chat(s) ativo(s)"
+            )
+            # Não bloquear, apenas logar - permitir múltiplos atendimentos
+        
+        # Atribuir o chat ao agente logado
+        atendimento_anterior = atendimento.atendente
+        
+        atendimento.atendente = request.user
+        atendimento.status = 'em_atendimento'
+        atendimento.iniciado_em = timezone.now()
+        atendimento.save()
+        
+        # Registrar timestamp de quando o chat foi assumido
+        logger.info(
+            f"Chat {pk} assumido por {request.user.username} "
+            f"(atendimento: {atendimento.id}) em {atendimento.iniciado_em}"
+        )
+        
+        # Remover da fila (se existir)
+        FilaAtendimento.objects.filter(chat_id=pk).delete()
+        
+        # Emitir evento WebSocket para atualizar outros agentes
+        self._emit_event('chat_attended', {
+            'chat_id': pk,
+            'atendimento_id': atendimento.id,
+            'assigned_agent': request.user.id,
+            'assigned_agent_name': request.user.display_name,
+            'status': 'em_atendimento',
+            'assigned_at': atendimento.iniciado_em.isoformat(),
+            'previous_agent': atendimento_anterior.id if atendimento_anterior else None
+        })
+        
+        # Resposta de sucesso conforme especificação
+        return Response(
+            {
+                'message': 'Chat atendido com sucesso',
+                'chat_id': pk,
+                'assigned_agent': request.user.id,
+                'status': 'em_atendimento',
+                'assigned_at': atendimento.iniciado_em.isoformat()
+            },
+            status=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['post'], url_path='aceitar')
     def aceitar(self, request, pk=None):
