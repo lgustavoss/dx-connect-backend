@@ -249,6 +249,14 @@ class WhatsAppSessionService:
         
         message_id = payload.get('message_id', str(uuid.uuid4()))
         
+        # Detectar se a mensagem é do agente
+        is_from_agent = (
+            from_number == 'agent_system' or 
+            payload.get('sender_type') == 'agent' or
+            payload.get('is_from_agent', False) or
+            payload.get('is_from_me', False)
+        )
+        
         # Cria registro da mensagem no banco
         message = await self._acreate_message(
             session=session,
@@ -265,7 +273,7 @@ class WhatsAppSessionService:
             payload=payload,
             raw_payload=raw_payload or payload,  # Usar raw_payload se fornecido
             protocol_version=protocol_version,
-            is_from_me=False,
+            is_from_me=is_from_agent,  # True se for do agente
             usuario_id=user_id,
             status='delivered'  # Mensagem recebida já está "delivered"
         )

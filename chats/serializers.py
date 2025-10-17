@@ -190,7 +190,16 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     
     def get_is_from_agent(self, obj):
         """Indica se mensagem é do atendente"""
-        return obj.direction == 'outbound'
+        # Mensagem é do agente se:
+        # 1. Direction é outbound (enviada pelo agente)
+        # 2. Direction é inbound mas is_from_me é True (agente simulando cliente)
+        # 3. Contact_number é 'agent_system' (identificador especial)
+        return (
+            obj.direction == 'outbound' or 
+            obj.is_from_me or 
+            obj.contact_number == 'agent_system' or
+            (obj.payload and obj.payload.get('sender_type') == 'agent')
+        )
 
 
 class AceitarChatSerializer(serializers.Serializer):
