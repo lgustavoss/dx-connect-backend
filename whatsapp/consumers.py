@@ -67,18 +67,29 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
         - ping/pong para manter conexão
         - injeção de mensagens (apenas para testes)
         """
+        logger.info(f"📨 receive_json chamado com: {content}")
+        logger.info(f"📨 Tipo da mensagem: {content.get('type')}")
+        logger.info(f"📨 User ID: {getattr(self, 'user_id', 'N/A')}")
+        
         # Ping/pong
         if content == {"type": "ping"}:
             await self.send_json({"type": "pong"})
             return
         
+        # Log para qualquer mensagem que não seja ping
+        if content.get("type") != "ping":
+            logger.info(f"🔍 Mensagem não-ping recebida: {content}")
+        
         # Injeção de mensagem de entrada (para testes)
         if content.get("type") == "inject_incoming" and hasattr(self, "user_id"):
+            logger.info(f"🔍 Processando inject_incoming para usuário {self.user_id}")
             service = get_whatsapp_session_service()
             try:
                 payload = content.get("payload", {})
                 from_number = content.get("from", "5511999999999")
                 chat_id = content.get("chat_id", from_number)
+                
+                logger.info(f"📤 Dados do inject_incoming: chat_id={chat_id}, from={from_number}, payload={payload}")
                 
                 message = await service.handle_incoming_message(
                     user_id=self.user_id,
@@ -87,13 +98,15 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                     payload=payload
                 )
                 
-                logger.info(f"Mensagem injetada via WebSocket: {message.message_id}")
+                logger.info(f"✅ Mensagem injetada via WebSocket: {message.message_id}")
                 
                 # Processar nova conversa (Issue #85/#87)
                 from chats.service import get_chat_service
                 from asgiref.sync import sync_to_async
                 chat_service = get_chat_service()
+                logger.info(f"🔄 Processando chat service...")
                 await sync_to_async(chat_service.processar_nova_mensagem_recebida)(message)
+                logger.info(f"✅ Chat service processado com sucesso")
                 
                 # Emitir evento message_received para todos os clientes conectados
                 # (broadcast via channel layer)
@@ -144,7 +157,7 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
                     
                     logger.info(f"Evento message_received emitido via broadcast para user_{self.user_id}")
             except Exception as e:
-                logger.error(f"Erro ao injetar mensagem: {e}", exc_info=True)
+                logger.error(f"❌ Erro ao injetar mensagem: {e}", exc_info=True)
                 await self.send_json({
                     "type": "inject_error",
                     "error": str(e)
