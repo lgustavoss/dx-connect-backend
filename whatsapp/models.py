@@ -245,11 +245,13 @@ class WhatsAppMessage(models.Model):
     
     STATUS_CHOICES = [
         ('queued', 'Na Fila'),
+        ('sending', 'Enviando'),
         ('sent', 'Enviada'),
         ('delivered', 'Entregue'),
         ('read', 'Lida'),
         ('failed', 'Falhou'),
         ('error', 'Erro'),
+        ('retrying', 'Tentando Novamente'),
     ]
     
     TYPE_CHOICES = [
@@ -418,10 +420,36 @@ class WhatsAppMessage(models.Model):
         verbose_name=_("Lido em")
     )
     
-    # Erro
+    # Erro e retry
     error_message = models.TextField(
         blank=True,
         verbose_name=_("Mensagem de Erro")
+    )
+    
+    retry_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Tentativas de Reenvio"),
+        help_text=_("Número de vezes que a mensagem foi tentada reenviar")
+    )
+    
+    max_retries = models.PositiveIntegerField(
+        default=3,
+        verbose_name=_("Máximo de Tentativas"),
+        help_text=_("Número máximo de tentativas de reenvio")
+    )
+    
+    last_retry_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Última Tentativa em"),
+        help_text=_("Data e hora da última tentativa de reenvio")
+    )
+    
+    failure_reason = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name=_("Motivo da Falha"),
+        help_text=_("Código ou descrição do motivo da falha")
     )
     
     # Flags
@@ -512,9 +540,60 @@ class WhatsAppMessage(models.Model):
         self.read_at = timezone.now()
         self.save(update_fields=['status', 'read_at'])
     
-    def mark_as_error(self, error_msg: str) -> None:
+    def mark_as_error(self, error_msg: str, failure_reason: str = '') -> None:
         """Marca mensagem com erro"""
         self.status = 'error'
         self.error_message = error_msg
-        self.save(update_fields=['status', 'error_message'])
+        self.failure_reason = failure_reason
+        self.save(update_fields=['status', 'error_message', 'failure_reason'])
+    
+    def mark_as_sending(self) -> None:
+        """Marca mensagem como enviando"""
+        self.status = 'sending'
+        self.save(update_fields=['status'])
+    
+    def mark_as_failed(self, error_msg: str = '', failure_reason: str = '') -> None:
+        """Marca mensagem como falhou definitivamente"""
+        self.status = 'failed'
+        self.error_message = error_msg
+        self.failure_reason = failure_reason
+        self.save(update_fields=['status', 'error_message', 'failure_reason'])
+    
+    def can_retry(self) -> bool:
+        """Verifica se a mensagem pode ser reenviada"""
+        return (
+            self.status in ['failed', 'error'] and 
+            self.retry_count < self.max_retries
+        )
+    
+    def increment_retry(self) -> None:
+        """Incrementa contador de tentativas"""
+        self.retry_count += 1
+        self.last_retry_at = timezone.now()
+        self.status = 'retrying'
+        self.save(update_fields=['retry_count', 'last_retry_at', 'status'])
+    
+    def reset_retry(self) -> None:
+        """Reseta contador de tentativas"""
+        self.retry_count = 0
+        self.last_retry_at = None
+        self.error_message = ''
+        self.failure_reason = ''
+        self.status = 'queued'
+        self.save(update_fields=['retry_count', 'last_retry_at', 'error_message', 'failure_reason', 'status'])
+    
+    @property
+    def is_final_status(self) -> bool:
+        """Verifica se o status é final (não pode mais mudar)"""
+        return self.status in ['delivered', 'read', 'failed']
+    
+    @property
+    def needs_retry(self) -> bool:
+        """Verifica se a mensagem precisa ser reenviada"""
+        return (
+            self.status in ['failed', 'error'] and 
+            self.retry_count < self.max_retries and
+            (not self.last_retry_at or 
+             (timezone.now() - self.last_retry_at).total_seconds() > 60)  # Aguarda 1 minuto entre tentativas
+        )
 

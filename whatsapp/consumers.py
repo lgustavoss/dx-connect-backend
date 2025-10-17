@@ -245,4 +245,42 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
         # O serviço já atualiza o status da sessão ao receber eventos do stub
         # Este método pode ser usado para lógica adicional no futuro
         logger.debug(f"Status da sessão atualizado: {payload.get('status')}")
+    
+    async def whatsapp_message_status(self, event):
+        """
+        Handler para notificações de status de mensagem via WebSocket
+        
+        Este método é chamado quando o MessageStatusService envia uma notificação
+        de mudança de status de mensagem.
+        """
+        try:
+            data = event['data']
+            logger.info(f"Enviando notificação de status: {data}")
+            
+            await self.send_json({
+                'type': 'message_status_update',
+                'data': data
+            })
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar notificação de status: {e}")
+    
+    async def whatsapp_chat_notification(self, event):
+        """
+        Handler para notificações de chat via WebSocket
+        
+        Este método é chamado quando há notificações relacionadas ao chat
+        (nova mensagem, chat assumido, etc.)
+        """
+        try:
+            data = event['data']
+            logger.info(f"Enviando notificação de chat: {data}")
+            
+            await self.send_json({
+                'type': 'chat_notification',
+                'data': data
+            })
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar notificação de chat: {e}")
 
