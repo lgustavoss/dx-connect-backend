@@ -175,12 +175,19 @@ class ChatViewSet(viewsets.ViewSet):
         """
         Retorna detalhes de um chat específico (por chat_id).
         """
-        # Buscar atendimento ativo por chat_id
-        atendimento = get_object_or_404(
-            Atendimento.objects.select_related('cliente', 'atendente', 'departamento'),
-            chat_id=pk,
-            status__in=['aguardando', 'em_atendimento', 'pausado']
-        )
+        # Buscar atendimento ativo por chat_id (usar .latest() para evitar MultipleObjectsReturned)
+        try:
+            atendimento = Atendimento.objects.select_related(
+                'cliente', 'atendente', 'departamento'
+            ).filter(
+                chat_id=pk,
+                status__in=['aguardando', 'em_atendimento', 'pausado']
+            ).latest('criado_em')
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Verificar permissão
         if not request.user.is_superuser:
@@ -203,12 +210,17 @@ class ChatViewSet(viewsets.ViewSet):
         - limit: número de mensagens (padrão: 50)
         - offset: paginação
         """
-        # Buscar atendimento
-        atendimento = get_object_or_404(
-            Atendimento,
-            chat_id=pk,
-            status__in=['aguardando', 'em_atendimento', 'pausado', 'finalizado']
-        )
+        # Buscar atendimento (usar .latest() para evitar MultipleObjectsReturned)
+        try:
+            atendimento = Atendimento.objects.filter(
+                chat_id=pk,
+                status__in=['aguardando', 'em_atendimento', 'pausado', 'finalizado']
+            ).latest('criado_em')
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Verificar permissão
         if not request.user.is_superuser:
@@ -251,11 +263,11 @@ class ChatViewSet(viewsets.ViewSet):
         
         Não requer body (opcional).
         """
-        # Buscar o chat pelo chat_id
+        # Buscar o chat pelo chat_id (usar .latest() para evitar MultipleObjectsReturned)
         try:
             atendimento = Atendimento.objects.select_related(
                 'atendente', 'departamento'
-            ).get(chat_id=pk)
+            ).filter(chat_id=pk).latest('criado_em')
         except Atendimento.DoesNotExist:
             return Response(
                 {'error': 'Chat não encontrado'},
@@ -345,8 +357,14 @@ class ChatViewSet(viewsets.ViewSet):
         serializer = AceitarChatSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Buscar atendimento
-        atendimento = get_object_or_404(Atendimento, chat_id=pk)
+        # Buscar atendimento (usar .latest() para evitar MultipleObjectsReturned)
+        try:
+            atendimento = Atendimento.objects.filter(chat_id=pk).latest('criado_em')
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Validar que está aguardando
         if atendimento.status != 'aguardando':
@@ -414,8 +432,14 @@ class ChatViewSet(viewsets.ViewSet):
         serializer = TransferirChatSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Buscar atendimento
-        atendimento = get_object_or_404(Atendimento, chat_id=pk)
+        # Buscar atendimento (usar .latest() para evitar MultipleObjectsReturned)
+        try:
+            atendimento = Atendimento.objects.filter(chat_id=pk).latest('criado_em')
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Validar permissão
         if not request.user.is_superuser:
@@ -494,8 +518,14 @@ class ChatViewSet(viewsets.ViewSet):
         serializer = EncerrarChatSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Buscar atendimento
-        atendimento = get_object_or_404(Atendimento, chat_id=pk)
+        # Buscar atendimento (usar .latest() para evitar MultipleObjectsReturned)
+        try:
+            atendimento = Atendimento.objects.filter(chat_id=pk).latest('criado_em')
+        except Atendimento.DoesNotExist:
+            return Response(
+                {'error': 'Chat não encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Validar permissão
         if not request.user.is_superuser:

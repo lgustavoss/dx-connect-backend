@@ -3,6 +3,7 @@ Testes para API de Chats (Issue #85).
 """
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -560,3 +561,90 @@ class ChatAttendTests(TestCase):
         response = self.client.post(f'/api/v1/chats/{atendimento2.chat_id}/attend/', {})
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_attend_chat_reaberto_multiple_objects(self):
+        """Testa Issue #91: Atender chat reaberto com múltiplos registros"""
+        # Cenário: Chat foi encerrado e reaberto (múltiplos registros de Atendimento)
+        
+        # Criar primeiro atendimento (encerrado)
+        atendimento1 = Atendimento.objects.create(
+            departamento=self.departamento,
+            cliente=self.cliente,
+            atendente=self.agente1,
+            chat_id='5511999999999',
+            numero_whatsapp='5511999999999',
+            status='finalizado',
+            criado_em=timezone.now() - timezone.timedelta(hours=2)
+        )
+        
+        # Criar segundo atendimento (reaberto)
+        atendimento2 = Atendimento.objects.create(
+            departamento=self.departamento,
+            cliente=self.cliente,
+            chat_id='5511999999999',  # Mesmo chat_id
+            numero_whatsapp='5511999999999',
+            status='aguardando',
+            criado_em=timezone.now()  # Mais recente
+        )
+        
+        # Tentar assumir o chat (deve pegar o mais recente)
+        response = self.client.post(f'/api/v1/chats/{atendimento2.chat_id}/attend/')
+        
+        # Verificar que funcionou sem erro MultipleObjectsReturned
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Chat atendido com sucesso')
+        self.assertEqual(response.data['assigned_agent'], self.agente1.id)
+        
+        # Verificar que o atendimento correto foi atualizado (o mais recente)
+        atendimento1.refresh_from_db()
+        atendimento2.refresh_from_db()
+        
+        # Atendimento antigo deve permanecer finalizado
+        self.assertEqual(atendimento1.status, 'finalizado')
+        
+        # Atendimento novo deve ter sido assumido
+        self.assertEqual(atendimento2.status, 'em_atendimento')
+        self.assertEqual(atendimento2.atendente, self.agente1)
+        self.assertIsNotNone(atendimento2.iniciado_em)
+    
+    def test_aceitar_chat_reaberto_multiple_objects(self):
+        """Testa Issue #91: Aceitar chat reaberto com múltiplos registros"""
+        # Cenário: Chat foi encerrado e reaberto (múltiplos registros de Atendimento)
+        
+        # Criar primeiro atendimento (encerrado)
+        atendimento1 = Atendimento.objects.create(
+            departamento=self.departamento,
+            cliente=self.cliente,
+            atendente=self.agente1,
+            chat_id='5511999999998',
+            numero_whatsapp='5511999999998',
+            status='finalizado',
+            criado_em=timezone.now() - timezone.timedelta(hours=2)
+        )
+        
+        # Criar segundo atendimento (reaberto)
+        atendimento2 = Atendimento.objects.create(
+            departamento=self.departamento,
+            cliente=self.cliente,
+            chat_id='5511999999998',  # Mesmo chat_id
+            numero_whatsapp='5511999999998',
+            status='aguardando',
+            criado_em=timezone.now()  # Mais recente
+        )
+        
+        # Tentar aceitar o chat (deve pegar o mais recente)
+        response = self.client.post(f'/api/v1/chats/{atendimento2.chat_id}/aceitar/')
+        
+        # Verificar que funcionou sem erro MultipleObjectsReturned
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verificar que o atendimento correto foi atualizado (o mais recente)
+        atendimento1.refresh_from_db()
+        atendimento2.refresh_from_db()
+        
+        # Atendimento antigo deve permanecer finalizado
+        self.assertEqual(atendimento1.status, 'finalizado')
+        
+        # Atendimento novo deve ter sido aceito
+        self.assertEqual(atendimento2.status, 'em_atendimento')
+        self.assertEqual(atendimento2.atendente, self.agente1)
