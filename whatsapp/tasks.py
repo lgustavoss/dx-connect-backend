@@ -170,19 +170,88 @@ def _emit_message_sent_event(
     }
     
     try:
-        group_name = f"user_{user_id}_whatsapp"
-        logger.info(f"Enviando evento para grupo: {group_name}")
-        logger.info(f"Payload do evento: {event_payload}")
+        # Enviar para grupo geral (todos os usuários conectados)
+        logger.info(f"📤 Enviando evento para grupo geral: whatsapp_messages")
+        logger.info(f"📦 Payload do evento: {event_payload}")
         
         async_to_sync(channel_layer.group_send)(
-            group_name,
+            "whatsapp_messages",
             {"type": "whatsapp.event", "event": event_payload}
         )
         
-        logger.info(f"Evento message_sent emitido: {message_id} (status: {status})")
+        # Também enviar para usuário específico (opcional)
+        user_group = f"user_{user_id}_whatsapp"
+        logger.info(f"📤 Enviando evento para usuário específico: {user_group}")
+        
+        async_to_sync(channel_layer.group_send)(
+            user_group,
+            {"type": "whatsapp.event", "event": event_payload}
+        )
+        
+        logger.info(f"✅ Evento message_sent emitido para todos os usuários: {message_id} (status: {status})")
     
     except Exception as e:
         logger.error(f"Erro ao emitir evento message_sent: {e}", exc_info=True)
+
+
+def _emit_message_status_event(
+    user_id: int,
+    message_id: str,
+    status: str,
+    to: str,
+    error: Optional[str] = None
+):
+    """
+    Emite evento WebSocket de mudança de status da mensagem.
+    
+    Args:
+        user_id: ID do usuário
+        message_id: ID da mensagem
+        status: Novo status (queued, sent, delivered, read, failed)
+        to: Número do destinatário
+        error: Mensagem de erro (opcional)
+    """
+    channel_layer = get_channel_layer()
+    
+    if not channel_layer:
+        logger.warning("Channel layer não disponível para emitir evento message_status")
+        return
+    
+    event_payload = {
+        "type": "message_status_update",
+        "data": {
+            "message_id": message_id,
+            "status": status,
+            "to": to,
+            "timestamp": timezone.now().isoformat(),
+            "error": error
+        },
+        "version": "v1"
+    }
+    
+    try:
+        # Enviar para grupo geral (todos os usuários conectados)
+        logger.info(f"📤 Enviando evento de status para grupo geral: whatsapp_messages")
+        logger.info(f"📦 Payload do evento: {event_payload}")
+        
+        async_to_sync(channel_layer.group_send)(
+            "whatsapp_messages",
+            {"type": "whatsapp.event", "event": event_payload}
+        )
+        
+        # Também enviar para usuário específico
+        user_group = f"user_{user_id}_whatsapp"
+        logger.info(f"📤 Enviando evento de status para usuário específico: {user_group}")
+        
+        async_to_sync(channel_layer.group_send)(
+            user_group,
+            {"type": "whatsapp.event", "event": event_payload}
+        )
+        
+        logger.info(f"✅ Evento message_status_update emitido: {message_id} (status: {status})")
+    
+    except Exception as e:
+        logger.error(f"Erro ao emitir evento message_status_update: {e}", exc_info=True)
 
 
 @shared_task

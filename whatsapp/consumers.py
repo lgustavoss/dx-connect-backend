@@ -46,8 +46,22 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
         if user_id:
             self.user_id = user_id
             self.group_name = f"user_{user_id}_whatsapp"
-            await self.channel_layer.group_add(self.group_name, self.channel_name)
-            logger.info(f"WebSocket conectado para usuário {user_id}")
+            
+            try:
+                # Adicionar ao grupo específico do usuário
+                await self.channel_layer.group_add(self.group_name, self.channel_name)
+                logger.info(f"✅ Usuário {user_id} adicionado ao grupo específico: {self.group_name}")
+                
+                # Adicionar ao grupo geral (todos os usuários)
+                await self.channel_layer.group_add("whatsapp_messages", self.channel_name)
+                logger.info(f"✅ Usuário {user_id} adicionado ao grupo geral: whatsapp_messages")
+                
+                logger.info(f"👤 WebSocket conectado para usuário {user_id}")
+                logger.info(f"🎯 Grupos WebSocket configurados com sucesso")
+                
+            except Exception as e:
+                logger.error(f"❌ Erro ao configurar grupos WebSocket para usuário {user_id}: {e}")
+                # Continuar mesmo com erro nos grupos
         else:
             logger.warning("Tentativa de conexão WebSocket sem autenticação")
         
@@ -56,8 +70,14 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, code):
         """Desconecta o WebSocket"""
         if hasattr(self, "group_name"):
+            # Remover do grupo específico do usuário
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
-            logger.info(f"WebSocket desconectado para usuário {self.user_id} (code: {code})")
+            
+            # Remover do grupo geral
+            await self.channel_layer.group_discard("whatsapp_messages", self.channel_name)
+            
+            logger.info(f"👤 WebSocket desconectado para usuário {self.user_id} (code: {code})")
+            logger.info(f"✅ Usuário {self.user_id} removido dos grupos WebSocket")
     
     async def receive_json(self, content, **kwargs):
         """
@@ -173,7 +193,8 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
         event_type = payload.get("type")
         
         # Log do evento
-        logger.info(f"🔔 Evento WhatsApp recebido: {event_type}")
+        user_info = f"usuário {getattr(self, 'user_id', 'N/A')}" if hasattr(self, 'user_id') else "usuário não autenticado"
+        logger.info(f"🔔 Evento WhatsApp recebido: {event_type} para {user_info}")
         logger.info(f"🔔 Payload completo: {payload}")
         
         # Processa eventos específicos
@@ -185,13 +206,21 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
             await self._handle_session_status(payload)
         elif event_type == "message_sent":
             await self._handle_message_sent(payload)
+        elif event_type == "message_status_update":
+            await self._handle_message_status_update(payload)
         
         # Envia payload para o cliente
         await self.send_json(payload)
     
     async def _handle_message_sent(self, payload):
         """Processa evento de mensagem enviada"""
-        logger.info(f"Evento message_sent processado: {payload}")
+        logger.info(f"📤 Evento message_sent processado: {payload}")
+        # Não precisa de processamento adicional, apenas log
+        pass
+    
+    async def _handle_message_status_update(self, payload):
+        """Processa evento de mudança de status da mensagem"""
+        logger.info(f"📊 Evento message_status_update processado: {payload}")
         # Não precisa de processamento adicional, apenas log
         pass
     
