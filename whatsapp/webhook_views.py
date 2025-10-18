@@ -39,13 +39,13 @@ class WhatsAppWebhookView(View):
             logger.debug(f"Dados do webhook: {data}")
             
             if event_type == 'message_status':
-                return await self._handle_message_status(data)
+                return self._handle_message_status(data)
             elif event_type == 'message_read':
-                return await self._handle_message_read(data)
+                return self._handle_message_read(data)
             elif event_type == 'message_delivered':
-                return await self._handle_message_delivered(data)
+                return self._handle_message_delivered(data)
             elif event_type == 'message_failed':
-                return await self._handle_message_failed(data)
+                return self._handle_message_failed(data)
             else:
                 logger.warning(f"Tipo de evento não suportado: {event_type}")
                 return JsonResponse({'error': 'Event type not supported'}, status=400)
@@ -57,7 +57,7 @@ class WhatsAppWebhookView(View):
             logger.error(f"Erro ao processar webhook: {e}")
             return JsonResponse({'error': 'Internal server error'}, status=500)
     
-    async def _handle_message_status(self, data):
+    def _handle_message_status(self, data):
         """Processa confirmação de status de mensagem"""
         try:
             message_id = data.get('message_id')
@@ -68,13 +68,24 @@ class WhatsAppWebhookView(View):
             if not message_id or not status:
                 return JsonResponse({'error': 'Missing required fields'}, status=400)
             
+            # Importar aqui para evitar import circular
+            from asgiref.sync import sync_to_async
+            import asyncio
+            
             service = get_message_status_service()
-            message = await service.update_message_status(
-                message_id=message_id,
-                status=status,
-                error_message=error_message,
-                failure_reason=failure_reason
-            )
+            
+            # Executar função async em contexto síncrono
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                message = loop.run_until_complete(service.update_message_status(
+                    message_id=message_id,
+                    status=status,
+                    error_message=error_message,
+                    failure_reason=failure_reason
+                ))
+            finally:
+                loop.close()
             
             if message:
                 return JsonResponse({
@@ -89,7 +100,7 @@ class WhatsAppWebhookView(View):
             logger.error(f"Erro ao processar status da mensagem: {e}")
             return JsonResponse({'error': 'Failed to update message status'}, status=500)
     
-    async def _handle_message_read(self, data):
+    def _handle_message_read(self, data):
         """Processa confirmação de leitura de mensagem"""
         try:
             message_id = data.get('message_id')
@@ -98,24 +109,30 @@ class WhatsAppWebhookView(View):
             if not message_id and not chat_id:
                 return JsonResponse({'error': 'Missing message_id or chat_id'}, status=400)
             
+            import asyncio
             service = get_message_status_service()
             
-            if message_id:
-                # Marcar mensagem específica como lida
-                message = await service.update_message_status(
-                    message_id=message_id,
-                    status='read'
-                )
-                if not message:
-                    return JsonResponse({'error': 'Message not found'}, status=404)
-            else:
-                # Marcar todas as mensagens do chat como lidas
-                count = await service.mark_as_read_by_chat(chat_id)
-                return JsonResponse({
-                    'success': True,
-                    'chat_id': chat_id,
-                    'messages_marked_as_read': count
-                })
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                if message_id:
+                    # Marcar mensagem específica como lida
+                    message = loop.run_until_complete(service.update_message_status(
+                        message_id=message_id,
+                        status='read'
+                    ))
+                    if not message:
+                        return JsonResponse({'error': 'Message not found'}, status=404)
+                else:
+                    # Marcar todas as mensagens do chat como lidas
+                    count = loop.run_until_complete(service.mark_as_read_by_chat(chat_id))
+                    return JsonResponse({
+                        'success': True,
+                        'chat_id': chat_id,
+                        'messages_marked_as_read': count
+                    })
+            finally:
+                loop.close()
             
             return JsonResponse({
                 'success': True,
@@ -127,7 +144,7 @@ class WhatsAppWebhookView(View):
             logger.error(f"Erro ao processar leitura da mensagem: {e}")
             return JsonResponse({'error': 'Failed to mark message as read'}, status=500)
     
-    async def _handle_message_delivered(self, data):
+    def _handle_message_delivered(self, data):
         """Processa confirmação de entrega de mensagem"""
         try:
             message_id = data.get('message_id')
@@ -135,11 +152,18 @@ class WhatsAppWebhookView(View):
             if not message_id:
                 return JsonResponse({'error': 'Missing message_id'}, status=400)
             
+            import asyncio
             service = get_message_status_service()
-            message = await service.update_message_status(
-                message_id=message_id,
-                status='delivered'
-            )
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                message = loop.run_until_complete(service.update_message_status(
+                    message_id=message_id,
+                    status='delivered'
+                ))
+            finally:
+                loop.close()
             
             if message:
                 return JsonResponse({
@@ -154,7 +178,7 @@ class WhatsAppWebhookView(View):
             logger.error(f"Erro ao processar entrega da mensagem: {e}")
             return JsonResponse({'error': 'Failed to mark message as delivered'}, status=500)
     
-    async def _handle_message_failed(self, data):
+    def _handle_message_failed(self, data):
         """Processa falha no envio de mensagem"""
         try:
             message_id = data.get('message_id')
@@ -164,13 +188,20 @@ class WhatsAppWebhookView(View):
             if not message_id:
                 return JsonResponse({'error': 'Missing message_id'}, status=400)
             
+            import asyncio
             service = get_message_status_service()
-            message = await service.update_message_status(
-                message_id=message_id,
-                status='failed',
-                error_message=error_message,
-                failure_reason=failure_reason
-            )
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                message = loop.run_until_complete(service.update_message_status(
+                    message_id=message_id,
+                    status='failed',
+                    error_message=error_message,
+                    failure_reason=failure_reason
+                ))
+            finally:
+                loop.close()
             
             if message:
                 return JsonResponse({

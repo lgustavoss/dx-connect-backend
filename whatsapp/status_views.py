@@ -47,8 +47,15 @@ class MessageStatsView(APIView):
     def get(self, request):
         """Retorna estatísticas de mensagens"""
         try:
+            import asyncio
             service = get_message_status_service()
-            stats = await service.get_message_stats(user_id=request.user.id)
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                stats = loop.run_until_complete(service.get_message_stats(user_id=request.user.id))
+            finally:
+                loop.close()
             
             return Response(stats, status=status.HTTP_200_OK)
             
@@ -165,8 +172,15 @@ class RetryFailedMessagesView(APIView):
     def post(self, request):
         """Tenta reenviar mensagens que falharam"""
         try:
+            import asyncio
             service = get_message_status_service()
-            count = await service.retry_failed_messages()
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                count = loop.run_until_complete(service.retry_failed_messages())
+            finally:
+                loop.close()
             
             return Response({
                 'success': True,
@@ -236,13 +250,20 @@ class MessageStatusUpdateView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
+            import asyncio
             service = get_message_status_service()
-            updated_message = await service.update_message_status(
-                message_id=message_id,
-                status=status_value,
-                error_message=error_message,
-                failure_reason=failure_reason
-            )
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                updated_message = loop.run_until_complete(service.update_message_status(
+                    message_id=message_id,
+                    status=status_value,
+                    error_message=error_message,
+                    failure_reason=failure_reason
+                ))
+            finally:
+                loop.close()
             
             if updated_message:
                 return Response({
@@ -300,8 +321,15 @@ class ChatReadStatusView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
+            import asyncio
             service = get_message_status_service()
-            count = await service.mark_as_read_by_chat(chat_id)
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                count = loop.run_until_complete(service.mark_as_read_by_chat(chat_id))
+            finally:
+                loop.close()
             
             return Response({
                 'success': True,
