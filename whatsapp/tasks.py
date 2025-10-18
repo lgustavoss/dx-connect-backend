@@ -62,6 +62,14 @@ def send_whatsapp_message_task(
             except WhatsAppMessage.DoesNotExist:
                 logger.warning(f"Mensagem {message_db_id} não encontrada no banco")
         
+        # Emite evento WebSocket de confirmação ANTES do envio para testar
+        _emit_message_sent_event(
+            user_id=user_id,
+            message_id=client_message_id or 'test-message-id',
+            status='queued',
+            to=to
+        )
+        
         # Envia via serviço
         service = get_whatsapp_session_service()
         result = async_to_sync(service.send_message)(
@@ -75,14 +83,6 @@ def send_whatsapp_message_task(
         if message_obj:
             message_obj.status = 'queued'
             message_obj.save(update_fields=['status'])
-        
-        # Emite evento WebSocket de confirmação
-        _emit_message_sent_event(
-            user_id=user_id,
-            message_id=result.get('message_id'),
-            status='queued',
-            to=to
-        )
         
         logger.info(
             f"[Task] Mensagem enviada com sucesso: {result.get('message_id')} "
@@ -158,7 +158,7 @@ def _emit_message_sent_event(
         return
     
     event_payload = {
-        "event": "message_sent",
+        "type": "message_sent",
         "data": {
             "message_id": message_id,
             "status": status,
@@ -170,12 +170,16 @@ def _emit_message_sent_event(
     }
     
     try:
+        group_name = f"user_{user_id}_whatsapp"
+        logger.info(f"Enviando evento para grupo: {group_name}")
+        logger.info(f"Payload do evento: {event_payload}")
+        
         async_to_sync(channel_layer.group_send)(
-            f"user_{user_id}_whatsapp",
+            group_name,
             {"type": "whatsapp.event", "event": event_payload}
         )
         
-        logger.debug(f"Evento message_sent emitido: {message_id} (status: {status})")
+        logger.info(f"Evento message_sent emitido: {message_id} (status: {status})")
     
     except Exception as e:
         logger.error(f"Erro ao emitir evento message_sent: {e}", exc_info=True)

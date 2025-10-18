@@ -173,7 +173,8 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
         event_type = payload.get("type")
         
         # Log do evento
-        logger.debug(f"Evento WhatsApp recebido: {event_type}")
+        logger.info(f"🔔 Evento WhatsApp recebido: {event_type}")
+        logger.info(f"🔔 Payload completo: {payload}")
         
         # Processa eventos específicos
         if event_type == "message_received":
@@ -182,9 +183,17 @@ class WhatsAppConsumer(AsyncJsonWebsocketConsumer):
             await self._handle_message_status(payload)
         elif event_type == "session_status":
             await self._handle_session_status(payload)
+        elif event_type == "message_sent":
+            await self._handle_message_sent(payload)
         
         # Envia payload para o cliente
         await self.send_json(payload)
+    
+    async def _handle_message_sent(self, payload):
+        """Processa evento de mensagem enviada"""
+        logger.info(f"Evento message_sent processado: {payload}")
+        # Não precisa de processamento adicional, apenas log
+        pass
     
     async def _handle_message_received(self, payload):
         """Processa mensagem recebida e persiste no banco"""
