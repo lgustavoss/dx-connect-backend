@@ -52,7 +52,8 @@ services:
   worker:
     build: .
     container_name: dxconnect_worker
-    command: ["celery", "-A", "config", "worker", "-l", "INFO"]
+    entrypoint: ["sh", "-c"]
+    command: ["python manage.py migrate --noinput && DJANGO_SETTINGS_MODULE=config.settings.development celery -A config worker -l INFO"]
     env_file:
       - .env
     depends_on:

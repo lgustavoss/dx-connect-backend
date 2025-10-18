@@ -225,4 +225,33 @@ LOGGING = {
     },
 }
 
+# ==============================================================================
+# CELERY CONFIGURATION
+# ==============================================================================
+
+# URL do broker Redis
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379/1")
+
+# Backend de resultados
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://redis:6379/1")
+
+# Timezone
+CELERY_TIMEZONE = env("CELERY_TIMEZONE", default="America/Sao_Paulo")
+
+# Configurações de serialização
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+
+# Configurações de retry
+CELERY_TASK_DEFAULT_RETRY_DELAY = 60
+CELERY_TASK_MAX_RETRIES = 3
+
+# Configurações de worker
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True
+
+# Configurações de beat (agendamento)
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
 
